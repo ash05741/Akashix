@@ -1,0 +1,8 @@
+{
+  "name": "akashix-core",
+  "private": true,
+  "workspaces": [
+    "Backend",
+    "Frontend"
+  ]
+}
