@@ -16,6 +16,26 @@ export const typeDefs = `#graphql
     createdAt: String!
     updatedAt: String!
   }
+    type Lore {
+  id: ID!
+  title: String!
+  category: String!
+  summary: String
+  content: String
+  workspaceId: ID!
+  createdAt: String
+  updatedAt: String
+}
+
+extend type Query {
+  getAllLore: [Lore!]!
+  getLoreByCategory(category: String!): [Lore!]!
+}
+
+extend type Mutation {
+  createLore(title: String!, category: String!, summary: String, content: String): Lore!
+  deleteLore(id: ID!): Boolean!
+}
 
   input StatsInput {
     strength: Int
@@ -47,7 +67,7 @@ export const typeDefs = `#graphql
     createCharacter(name: String!, role: String!, has3DModel: Boolean, stats: StatsInput): Character!
     
     # New Auth Mutations
-    register(name: String!, email: String!, password: String!, workspaceId: String!): AuthPayload!
+    register(name: String!, email: String!, password: String!, workspaceName: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload!
   }
 `;
