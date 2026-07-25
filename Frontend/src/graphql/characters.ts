@@ -5,6 +5,7 @@ export const GET_CHARACTERS = gql`
     getCharacters {
       id
       name
+      role
       stats {
         strength
         agility
@@ -13,16 +14,24 @@ export const GET_CHARACTERS = gql`
     }
   }
 `;
+
 export const CREATE_CHARACTER = gql`
-  mutation CreateCharacter($name: String!) {
-    createCharacter(name: $name) {
+  mutation CreateCharacter($name: String!, $role: String!, $stats: StatsInput) {
+    createCharacter(name: $name, role: $role, stats: $stats) {
       id
       name
+      role
       stats {
         strength
         agility
         intelligence
       }
     }
+  }
+`;
+
+export const DELETE_CHARACTER = gql`
+  mutation DeleteCharacter($id: ID!) {
+    deleteCharacter(id: $id)
   }
 `;

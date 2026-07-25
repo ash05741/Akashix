@@ -92,16 +92,47 @@ export const resolvers = {
         },
 
         // --- CHARACTER MANAGEMENT ---
-        createCharacter: async (_parent: any, args: any, context: ApolloContext) => {
-            if (!context.workspaceId) throw new Error('Unauthorized: Missing workspace ID');
+        createCharacter: async (_: any, args: any, context: ApolloContext) => {
+            // MATCHED TO LORE: Check context.workspaceId directly
+            if (!context.workspaceId) {
+                throw new Error("Unauthorized: No workspace ID found");
+            }
 
+            const { name, role, has3DModel, stats } = args;
+
+            // Create and Save to Mongoose
             const newCharacter = new Character({
-                ...args,
                 workspaceId: context.workspaceId,
-                stats: args.stats || { strength: 10, agility: 10, intelligence: 10 }
+                name,
+                role,
+                has3DModel: has3DModel || false,
+                stats: {
+                    // If they didn't provide a specific stat, fallback to the default of 10
+                    strength: stats?.strength ?? 10,
+                    agility: stats?.agility ?? 10,
+                    intelligence: stats?.intelligence ?? 10,
+                },
             });
 
-            return await newCharacter.save();
+            await newCharacter.save();
+            return newCharacter;
+        },
+
+        deleteCharacter: async (_: any, { id }: { id: string }, context: ApolloContext) => {
+            // 1. Check auth exactly like the others
+            if (!context.workspaceId) {
+                throw new Error("Unauthorized: No workspace ID found");
+            }
+
+            // 2. Find it and make sure it belongs to this workspace (security measure)
+            const character = await Character.findOne({ _id: id, workspaceId: context.workspaceId });
+            if (!character) {
+                throw new Error("Character not found or you don't have permission to delete it.");
+            }
+
+            // 3. Delete it
+            await Character.findByIdAndDelete(id);
+            return true; // Matches the Boolean! in typeDefs
         },
 
         // --- LORE MANAGEMENT ---

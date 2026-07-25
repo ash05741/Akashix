@@ -66,6 +66,8 @@ extend type Mutation {
     # Existing
     createCharacter(name: String!, role: String!, has3DModel: Boolean, stats: StatsInput): Character!
     
+    deleteCharacter(id: ID!): Boolean!
+
     # New Auth Mutations
     register(name: String!, email: String!, password: String!, workspaceName: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload!

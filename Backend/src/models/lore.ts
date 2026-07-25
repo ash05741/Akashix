@@ -5,7 +5,7 @@ export interface ILore extends Document {
     category: string;
     summary: string;
     content: string;
-    workspaceId: mongoose.Types.ObjectId;
+    workspaceId: string;
 }
 
 const LoreSchema = new Schema<ILore>({
@@ -14,7 +14,7 @@ const LoreSchema = new Schema<ILore>({
     summary: { type: String, default: '' },
     content: { type: String, default: '' },
     // Critical for multi-tenancy:
-    workspaceId: { type: Schema.Types.ObjectId, ref: 'Workspace', required: true }
+    workspaceId: { type: String, required: true }
 }, { timestamps: true });
 
 export default mongoose.model<ILore>('Lore', LoreSchema);

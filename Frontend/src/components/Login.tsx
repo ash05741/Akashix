@@ -35,12 +35,12 @@ export const Login = () => {
     const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>();
 
     const [executeLogin, { loading }] = useMutation<LoginResponse>(LOGIN_MUTATION, {
-        onCompleted: (data) => {
+        onCompleted: (data: LoginResponse) => {
             // Pass the user data and the token straight into the global context
             login(data.login.user, data.login.token);
             navigate('/dashboard');
         },
-        onError: (error) => {
+        onError: (error: Error) => {
             setAuthError(error.message || 'Invalid credentials');
         }
     });

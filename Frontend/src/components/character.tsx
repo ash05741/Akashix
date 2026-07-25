@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Plus, Loader2, User, X } from 'lucide-react';
-import { GET_CHARACTERS, CREATE_CHARACTER } from '../graphql/characters';
+import { Plus, Loader2, User, X, Trash2 } from 'lucide-react';
+import { GET_CHARACTERS, CREATE_CHARACTER, DELETE_CHARACTER } from '../graphql/characters';
 
 interface Character {
     id: string;
     name: string;
+    role?: string;
     stats: {
         strength: number;
         agility: number;
@@ -19,25 +20,67 @@ interface GetCharactersResponse {
 
 export const Characters = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Form State
     const [newCharName, setNewCharName] = useState('');
+    const [newCharRole, setNewCharRole] = useState('');
+
+    const [stats, setStats] = useState({
+        strength: 10,
+        agility: 10,
+        intelligence: 10
+    });
 
     const { data, loading, error } = useQuery<GetCharactersResponse>(GET_CHARACTERS);
 
+    // --- MUTATIONS ---
     const [createCharacter, { loading: creating }] = useMutation(CREATE_CHARACTER, {
         refetchQueries: [{ query: GET_CHARACTERS }],
         onCompleted: () => {
             setIsModalOpen(false);
             setNewCharName('');
+            setNewCharRole('');
+            setStats({ strength: 10, agility: 10, intelligence: 10 });
+        },
+        onError: (err) => {
+            console.error("Mutation error:", err.message);
+            alert(`Failed to create character: ${err.message}`);
         }
     });
 
+    const [deleteCharacter] = useMutation(DELETE_CHARACTER, {
+        refetchQueries: [{ query: GET_CHARACTERS }],
+        onError: (err) => {
+            console.error("Delete error:", err.message);
+            alert(`Failed to delete character: ${err.message}`);
+        }
+    });
+
+    // --- HANDLERS ---
     const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newCharName.trim()) return;
+
+        if (!newCharName.trim() || !newCharRole.trim()) return;
 
         createCharacter({
-            variables: { name: newCharName.trim() }
+            variables: {
+                name: newCharName.trim(),
+                role: newCharRole.trim(),
+                stats: {
+                    strength: stats.strength,
+                    agility: stats.agility,
+                    intelligence: stats.intelligence
+                }
+            }
         });
+    };
+
+    const handleDelete = (id: string, name: string) => {
+        if (window.confirm(`Are you sure you want to delete ${name}? This cannot be undone.`)) {
+            deleteCharacter({
+                variables: { id }
+            });
+        }
     };
 
     if (loading) {
@@ -83,12 +126,25 @@ export const Characters = () => {
             ) : (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {characters.map((char) => (
-                        <div key={char.id} className="rounded-xl border border-zinc-800 bg-[#121212] p-6 hover:border-zinc-700 transition-colors shadow-lg">
-                            <div className="flex items-center gap-3 mb-5">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-800/80 border border-zinc-700/50">
-                                    <User className="h-5 w-5 text-zinc-400" />
+                        <div key={char.id} className="rounded-xl border border-zinc-800 bg-[#121212] p-6 hover:border-zinc-700 transition-colors shadow-lg group">
+                            {/* CARD HEADER - Added justify-between and Delete Button */}
+                            <div className="flex items-start justify-between mb-5">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-800/80 border border-zinc-700/50">
+                                        <User className="h-5 w-5 text-zinc-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-zinc-100">{char.name}</h3>
+                                        {char.role && <p className="text-xs text-zinc-500 mt-0.5">{char.role}</p>}
+                                    </div>
                                 </div>
-                                <h3 className="text-lg font-semibold text-zinc-100">{char.name}</h3>
+                                <button
+                                    onClick={() => handleDelete(char.id, char.name)}
+                                    className="text-zinc-600 hover:text-red-400 hover:bg-red-400/10 p-1.5 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                                    title="Delete Character"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
                             </div>
 
                             <div className="space-y-2 border-t border-zinc-800/80 pt-4">
@@ -110,7 +166,6 @@ export const Characters = () => {
                 </div>
             )}
 
-            {/* Creation Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-[#121212] p-6 shadow-2xl">
@@ -140,6 +195,56 @@ export const Characters = () => {
                                 />
                             </div>
 
+                            <div>
+                                <label htmlFor="role" className="block text-sm font-medium text-zinc-400 mb-2 mt-4">
+                                    Character Role
+                                </label>
+                                <input
+                                    id="role"
+                                    type="text"
+                                    value={newCharRole}
+                                    onChange={(e) => setNewCharRole(e.target.value)}
+                                    placeholder="e.g., Protagonist, Villain, NPC..."
+                                    className="block w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 sm:text-sm"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4 mt-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wider">STR</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="100"
+                                        value={stats.strength}
+                                        onChange={(e) => setStats({ ...stats, strength: parseInt(e.target.value) || 0 })}
+                                        className="block w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-zinc-100 text-center focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 sm:text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wider">AGI</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="100"
+                                        value={stats.agility}
+                                        onChange={(e) => setStats({ ...stats, agility: parseInt(e.target.value) || 0 })}
+                                        className="block w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-zinc-100 text-center focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 sm:text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wider">INT</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="100"
+                                        value={stats.intelligence}
+                                        onChange={(e) => setStats({ ...stats, intelligence: parseInt(e.target.value) || 0 })}
+                                        className="block w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-zinc-100 text-center focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 sm:text-sm"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="flex justify-end gap-3 mt-6">
                                 <button
                                     type="button"
@@ -150,7 +255,7 @@ export const Characters = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={!newCharName.trim() || creating}
+                                    disabled={!newCharName.trim() || !newCharRole.trim() || creating}
                                     className="flex items-center justify-center min-w-[100px] rounded-lg bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                                 >
                                     {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create'}
