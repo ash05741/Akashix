@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { Plus, Loader2, User, X, Trash2 } from 'lucide-react';
+import { Plus, Loader2, User, X, Trash2, AlertTriangle } from 'lucide-react';
 import { GET_CHARACTERS, CREATE_CHARACTER, DELETE_CHARACTER } from '../graphql/characters';
 
 interface Character {
@@ -19,17 +19,15 @@ interface GetCharactersResponse {
 }
 
 export const Characters = () => {
+    // Modal States
     const [isModalOpen, setIsModalOpen] = useState(false);
+    // NEW: State for tracking the character to delete
+    const [charToDelete, setCharToDelete] = useState<{ id: string; name: string } | null>(null);
 
     // Form State
     const [newCharName, setNewCharName] = useState('');
     const [newCharRole, setNewCharRole] = useState('');
-
-    const [stats, setStats] = useState({
-        strength: 10,
-        agility: 10,
-        intelligence: 10
-    });
+    const [stats, setStats] = useState({ strength: 10, agility: 10, intelligence: 10 });
 
     const { data, loading, error } = useQuery<GetCharactersResponse>(GET_CHARACTERS);
 
@@ -48,18 +46,21 @@ export const Characters = () => {
         }
     });
 
-    const [deleteCharacter] = useMutation(DELETE_CHARACTER, {
+    const [deleteCharacter, { loading: deleting }] = useMutation(DELETE_CHARACTER, {
         refetchQueries: [{ query: GET_CHARACTERS }],
+        onCompleted: () => {
+            setCharToDelete(null); // Close modal on success
+        },
         onError: (err) => {
             console.error("Delete error:", err.message);
             alert(`Failed to delete character: ${err.message}`);
+            setCharToDelete(null);
         }
     });
 
     // --- HANDLERS ---
     const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!newCharName.trim() || !newCharRole.trim()) return;
 
         createCharacter({
@@ -75,12 +76,15 @@ export const Characters = () => {
         });
     };
 
-    const handleDelete = (id: string, name: string) => {
-        if (window.confirm(`Are you sure you want to delete ${name}? This cannot be undone.`)) {
-            deleteCharacter({
-                variables: { id }
-            });
-        }
+    // NEW: Opens the modal instead of native confirm
+    const handleDeleteClick = (id: string, name: string) => {
+        setCharToDelete({ id, name });
+    };
+
+    // NEW: Actually executes the deletion
+    const confirmDelete = () => {
+        if (!charToDelete) return;
+        deleteCharacter({ variables: { id: charToDelete.id } });
     };
 
     if (loading) {
@@ -127,7 +131,6 @@ export const Characters = () => {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {characters.map((char) => (
                         <div key={char.id} className="rounded-xl border border-zinc-800 bg-[#121212] p-6 hover:border-zinc-700 transition-colors shadow-lg group">
-                            {/* CARD HEADER - Added justify-between and Delete Button */}
                             <div className="flex items-start justify-between mb-5">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-800/80 border border-zinc-700/50">
@@ -139,7 +142,7 @@ export const Characters = () => {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => handleDelete(char.id, char.name)}
+                                    onClick={() => handleDeleteClick(char.id, char.name)}
                                     className="text-zinc-600 hover:text-red-400 hover:bg-red-400/10 p-1.5 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                                     title="Delete Character"
                                 >
@@ -166,6 +169,7 @@ export const Characters = () => {
                 </div>
             )}
 
+            {/* CREATE MODAL (Unchanged) */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-[#121212] p-6 shadow-2xl">
@@ -178,12 +182,10 @@ export const Characters = () => {
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-
                         <form onSubmit={handleCreate} className="space-y-4">
+                            {/* Form fields omitted for brevity, keep your existing inputs here! */}
                             <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-zinc-400 mb-2">
-                                    Character Name
-                                </label>
+                                <label htmlFor="name" className="block text-sm font-medium text-zinc-400 mb-2">Character Name</label>
                                 <input
                                     id="name"
                                     type="text"
@@ -194,11 +196,8 @@ export const Characters = () => {
                                     autoFocus
                                 />
                             </div>
-
                             <div>
-                                <label htmlFor="role" className="block text-sm font-medium text-zinc-400 mb-2 mt-4">
-                                    Character Role
-                                </label>
+                                <label htmlFor="role" className="block text-sm font-medium text-zinc-400 mb-2 mt-4">Character Role</label>
                                 <input
                                     id="role"
                                     type="text"
@@ -208,60 +207,71 @@ export const Characters = () => {
                                     className="block w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 sm:text-sm"
                                 />
                             </div>
-
                             <div className="grid grid-cols-3 gap-4 mt-4">
                                 <div>
                                     <label className="block text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wider">STR</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="100"
-                                        value={stats.strength}
-                                        onChange={(e) => setStats({ ...stats, strength: parseInt(e.target.value) || 0 })}
-                                        className="block w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-zinc-100 text-center focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 sm:text-sm"
-                                    />
+                                    <input type="number" min="1" max="100" value={stats.strength} onChange={(e) => setStats({ ...stats, strength: parseInt(e.target.value) || 0 })} className="block w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-zinc-100 text-center focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 sm:text-sm" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wider">AGI</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="100"
-                                        value={stats.agility}
-                                        onChange={(e) => setStats({ ...stats, agility: parseInt(e.target.value) || 0 })}
-                                        className="block w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-zinc-100 text-center focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 sm:text-sm"
-                                    />
+                                    <input type="number" min="1" max="100" value={stats.agility} onChange={(e) => setStats({ ...stats, agility: parseInt(e.target.value) || 0 })} className="block w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-zinc-100 text-center focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 sm:text-sm" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wider">INT</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="100"
-                                        value={stats.intelligence}
-                                        onChange={(e) => setStats({ ...stats, intelligence: parseInt(e.target.value) || 0 })}
-                                        className="block w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-zinc-100 text-center focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 sm:text-sm"
-                                    />
+                                    <input type="number" min="1" max="100" value={stats.intelligence} onChange={(e) => setStats({ ...stats, intelligence: parseInt(e.target.value) || 0 })} className="block w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-zinc-100 text-center focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 sm:text-sm" />
                                 </div>
                             </div>
-
                             <div className="flex justify-end gap-3 mt-6">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={!newCharName.trim() || !newCharRole.trim() || creating}
-                                    className="flex items-center justify-center min-w-[100px] rounded-lg bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-                                >
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors">Cancel</button>
+                                <button type="submit" disabled={!newCharName.trim() || !newCharRole.trim() || creating} className="flex items-center justify-center min-w-[100px] rounded-lg bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm">
                                     {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create'}
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* NEW: DELETE CONFIRMATION MODAL */}
+            {charToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-[#121212] p-6 shadow-2xl overflow-hidden relative">
+                        {/* Decorative background glow */}
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-500/10 blur-3xl rounded-full"></div>
+
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20">
+                                <AlertTriangle className="w-6 h-6 text-red-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-zinc-100">Delete Character?</h3>
+                                <p className="text-sm text-zinc-400 mt-1">This action cannot be undone.</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4 my-6">
+                            <p className="text-zinc-300">
+                                You are about to permanently delete <span className="font-semibold text-white">"{charToDelete.name}"</span>. All associated stats and references will be removed from your workspace.
+                            </p>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                                type="button"
+                                onClick={() => setCharToDelete(null)}
+                                disabled={deleting}
+                                className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                disabled={deleting}
+                                className="flex items-center justify-center min-w-[120px] rounded-lg bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                            >
+                                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete Permanently'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

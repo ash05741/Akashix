@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { gql } from '@apollo/client';
-import { BookOpen, Map, Shield, Clock, Plus, Loader2, X, Trash2 } from 'lucide-react';
+import { BookOpen, Map, Shield, Clock, Plus, Loader2, X, Trash2, AlertTriangle } from 'lucide-react';
 
 // 1. Queries and Mutations
 const GET_ALL_LORE = gql`
@@ -26,7 +26,6 @@ const CREATE_LORE = gql`
   }
 `;
 
-// NEW: Delete Mutation
 const DELETE_LORE = gql`
   mutation DeleteLore($id: ID!) {
     deleteLore(id: $id)
@@ -57,10 +56,13 @@ export default function World() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // NEW: Delete Modal State
+    const [loreToDelete, setLoreToDelete] = useState<{ id: string; title: string } | null>(null);
+
     // Form State
     const [formData, setFormData] = useState({
         title: '',
-        category: 'Location', // Default selection
+        category: 'Location',
         summary: '',
         content: ''
     });
@@ -80,12 +82,16 @@ export default function World() {
         }
     });
 
-    // NEW: Delete Hook
-    const [deleteLore] = useMutation(DELETE_LORE, {
+    // UPDATED: Delete Hook with loading state
+    const [deleteLore, { loading: isDeleting }] = useMutation(DELETE_LORE, {
         refetchQueries: [{ query: GET_ALL_LORE }],
+        onCompleted: () => {
+            setLoreToDelete(null);
+        },
         onError: (err) => {
             console.error("Delete error:", err.message);
             alert(`Failed to delete lore: ${err.message}`);
+            setLoreToDelete(null);
         }
     });
 
@@ -95,12 +101,16 @@ export default function World() {
         createLore({ variables: formData });
     };
 
-    // NEW: Delete Handler
-    const handleDelete = (e: React.MouseEvent, id: string, title: string) => {
-        e.stopPropagation(); // Prevents triggering any future click events on the card itself
-        if (window.confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`)) {
-            deleteLore({ variables: { id } });
-        }
+    // NEW: Open modal instead of window.confirm
+    const handleDeleteClick = (e: React.MouseEvent, id: string, title: string) => {
+        e.stopPropagation();
+        setLoreToDelete({ id, title });
+    };
+
+    // NEW: Execute deletion
+    const confirmDelete = () => {
+        if (!loreToDelete) return;
+        deleteLore({ variables: { id: loreToDelete.id } });
     };
 
     if (loading) {
@@ -177,7 +187,7 @@ export default function World() {
                                     </span>
                                 </div>
                                 <button
-                                    onClick={(e) => handleDelete(e, lore.id, lore.title)}
+                                    onClick={(e) => handleDeleteClick(e, lore.id, lore.title)}
                                     className="text-zinc-600 hover:text-red-400 hover:bg-red-400/10 p-1.5 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                                     title="Delete Lore"
                                 >
@@ -266,6 +276,50 @@ export default function World() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* NEW: Delete Confirmation Modal */}
+            {loreToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-[#121212] p-6 shadow-2xl overflow-hidden relative">
+                        {/* Decorative background glow */}
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-500/10 blur-3xl rounded-full"></div>
+
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20">
+                                <AlertTriangle className="w-6 h-6 text-red-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-zinc-100">Delete Lore Entry?</h3>
+                                <p className="text-sm text-zinc-400 mt-1">This action cannot be undone.</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4 my-6">
+                            <p className="text-zinc-300">
+                                You are about to permanently delete <span className="font-semibold text-white">"{loreToDelete.title}"</span>. This piece of world history will be lost from your workspace.
+                            </p>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                                type="button"
+                                onClick={() => setLoreToDelete(null)}
+                                disabled={isDeleting}
+                                className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                disabled={isDeleting}
+                                className="flex items-center justify-center min-w-[120px] rounded-lg bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                            >
+                                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete Permanently'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

@@ -6,7 +6,7 @@ import { Register } from './components/Register';
 import { DashboardLayout } from './components/DashboardLayout';
 import { Characters } from './components/character';
 import World from './pages/world';
-import Overview from './components/overview'; // This imports the full metrics dashboard
+import Overview from './components/Overview'; // This imports the full metrics dashboard
 
 function App() {
   return (
