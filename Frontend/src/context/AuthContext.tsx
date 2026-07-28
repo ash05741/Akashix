@@ -6,7 +6,6 @@ interface User {
     email: string;
     workspaceId: string;
     role: string;
-    // Added as optional in case your backend sends it during login
     workspaceName?: string;
 }
 
@@ -17,35 +16,37 @@ interface AuthContextType {
     logout: () => void;
     isAuthenticated: boolean;
     workspaceName: string | null;
+    isLoading: boolean; // <-- Added to prevent premature redirects
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(null);
-    const [workspaceName, setWorkspaceName] = useState<string | null>(null);
+    // 1. Initialize state synchronously from localStorage on frame 1
+    const [token, setToken] = useState<string | null>(() => {
+        return localStorage.getItem('akashix_token');
+    });
 
-    useEffect(() => {
-        // Check for an existing session on load
-        const storedToken = localStorage.getItem('akashix_token');
+    const [user, setUser] = useState<User | null>(() => {
         const storedUser = localStorage.getItem('akashix_user');
-        const storedWorkspaceName = localStorage.getItem('akashix_workspace_name');
+        return storedUser ? JSON.parse(storedUser) : null;
+    });
 
-        if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
-            if (storedWorkspaceName) {
-                setWorkspaceName(storedWorkspaceName);
-            }
-        }
+    const [workspaceName, setWorkspaceName] = useState<string | null>(() => {
+        return localStorage.getItem('akashix_workspace_name');
+    });
+
+    const [isLoading, setIsLoading] = useState(true);
+
+    // 2. Mark loading as finished after initial mount check
+    useEffect(() => {
+        setIsLoading(false);
     }, []);
 
     const login = (userData: User, newToken: string) => {
         localStorage.setItem('akashix_token', newToken);
         localStorage.setItem('akashix_user', JSON.stringify(userData));
 
-        // Grab the workspace name if it exists, otherwise default it so the UI looks good
         const wName = userData.workspaceName || 'My Workspace';
         localStorage.setItem('akashix_workspace_name', wName);
 
@@ -70,14 +71,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             login,
             logout,
             isAuthenticated: !!token,
-            workspaceName // <-- This was missing before!
+            workspaceName,
+            isLoading
         }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
-// Custom hook so any component can instantly check auth status
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (context === undefined) {
