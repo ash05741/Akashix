@@ -1,12 +1,11 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@apollo/client/react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Database, Crosshair, Network } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { REGISTER_MUTATION } from '../graphql/auth';
 
-// 1. What the form collects
 interface RegisterFormInputs {
     name: string;
     email: string;
@@ -14,7 +13,6 @@ interface RegisterFormInputs {
     workspaceName: string;
 }
 
-// 2. What the server returns (Notice: it returns workspaceId, NOT workspaceName)
 interface RegisterResponse {
     register: {
         token: string;
@@ -47,7 +45,6 @@ export const Register = () => {
 
     const onSubmit = (data: RegisterFormInputs) => {
         setAuthError(null);
-        // 3. We SEND workspaceName to the backend here
         executeRegister({
             variables: {
                 name: data.name,
@@ -59,99 +56,160 @@ export const Register = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4 sm:px-6 lg:px-8">
-            <div className="w-full max-w-md space-y-8 rounded-xl bg-[#121212] p-8 shadow-2xl border border-zinc-800/80">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-zinc-100 tracking-tight">
-                        Join AkashixCore
+        <div className="flex min-h-screen items-center justify-center bg-black px-4 font-sans selection:bg-zinc-700 selection:text-white relative overflow-hidden py-12">
+
+            {/* Schematic Grid Background */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#18181b_1px,transparent_1px),linear-gradient(to_bottom,#18181b_1px,transparent_1px)] bg-[size:100px_100px] pointer-events-none"></div>
+
+            {/* Registration Frame */}
+            <div className="w-full max-w-md relative z-10 border border-zinc-800 bg-black/80 backdrop-blur-md p-8 sm:p-12 shadow-2xl mt-8 mb-8">
+
+                {/* Corner Crosshairs */}
+                <Crosshair className="absolute -top-3 -left-3 w-6 h-6 text-zinc-700" strokeWidth={1} />
+                <Crosshair className="absolute -top-3 -right-3 w-6 h-6 text-zinc-700" strokeWidth={1} />
+                <Crosshair className="absolute -bottom-3 -left-3 w-6 h-6 text-zinc-700" strokeWidth={1} />
+                <Crosshair className="absolute -bottom-3 -right-3 w-6 h-6 text-zinc-700" strokeWidth={1} />
+
+                {/* Header */}
+                <div className="flex flex-col items-center mb-8 border-b border-zinc-800 pb-8 text-center">
+                    <Database className="w-6 h-6 text-white mb-4" strokeWidth={1.5} />
+                    <h2 className="text-3xl font-black text-white tracking-tighter uppercase mb-2 leading-none">
+                        Deploy <br /> Node
                     </h2>
-                    <p className="mt-2 text-center text-sm text-zinc-400">
-                        Create your workspace to get started
+                    <p className="font-mono text-[10px] text-zinc-500 tracking-widest uppercase mt-4">
+                        Initialize new tenant workspace
                     </p>
                 </div>
 
-                <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="sr-only" htmlFor="name">Full Name</label>
-                            <input
-                                id="name"
-                                type="text"
-                                className={`block w-full rounded-lg border bg-zinc-900/50 px-4 py-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 sm:text-sm ${errors.name ? 'border-red-500/50 focus:ring-red-500' : 'border-zinc-800'
-                                    }`}
-                                placeholder="Full Name"
-                                {...register('name', { required: 'Name is required' })}
-                            />
-                        </div>
+                {/* Form */}
+                <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
 
-                        <div>
-                            <label className="sr-only" htmlFor="workspaceName">Workspace Name</label>
-                            <input
-                                id="workspaceName"
-                                type="text"
-                                className={`block w-full rounded-lg border bg-zinc-900/50 px-4 py-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 sm:text-sm ${errors.workspaceName ? 'border-red-500/50 focus:ring-red-500' : 'border-zinc-800'
-                                    }`}
-                                placeholder="Workspace Name (e.g., My Company)"
-                                {...register('workspaceName', { required: 'Workspace is required' })}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="sr-only" htmlFor="email">Email address</label>
-                            <input
-                                id="email"
-                                type="email"
-                                autoComplete="email"
-                                className={`block w-full rounded-lg border bg-zinc-900/50 px-4 py-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 sm:text-sm ${errors.email ? 'border-red-500/50 focus:ring-red-500' : 'border-zinc-800'
-                                    }`}
-                                placeholder="Email address"
-                                {...register('email', { required: 'Email is required' })}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="sr-only" htmlFor="password">Password</label>
-                            <input
-                                id="password"
-                                type="password"
-                                autoComplete="new-password"
-                                className={`block w-full rounded-lg border bg-zinc-900/50 px-4 py-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 sm:text-sm ${errors.password ? 'border-red-500/50 focus:ring-red-500' : 'border-zinc-800'
-                                    }`}
-                                placeholder="Password"
-                                {...register('password', {
-                                    required: 'Password is required',
-                                    minLength: { value: 6, message: 'Must be at least 6 characters' }
-                                })}
-                            />
-                            {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password.message}</p>}
-                        </div>
+                    {/* Name Input */}
+                    <div className="space-y-2">
+                        <label className="block font-mono text-[10px] text-zinc-400 tracking-widest uppercase" htmlFor="name">
+                            Entity Designation [Name]
+                        </label>
+                        <input
+                            id="name"
+                            type="text"
+                            className={`block w-full bg-black border px-4 py-3 text-white placeholder-zinc-700 focus:outline-none focus:border-white font-mono text-sm transition-colors rounded-none ${errors.name ? 'border-red-500/50' : 'border-zinc-800'
+                                }`}
+                            placeholder="e.g. John Doe"
+                            {...register('name', { required: 'Designation is required' })}
+                        />
+                        {errors.name && (
+                            <p className="font-mono text-[10px] text-red-500 tracking-widest uppercase mt-2">
+                                ERR: {errors.name.message}
+                            </p>
+                        )}
                     </div>
 
+                    {/* Workspace Input */}
+                    <div className="space-y-2">
+                        <label className="block font-mono text-[10px] text-zinc-400 tracking-widest uppercase" htmlFor="workspaceName">
+                            Tenant Realm [Workspace]
+                        </label>
+                        <input
+                            id="workspaceName"
+                            type="text"
+                            className={`block w-full bg-black border px-4 py-3 text-white placeholder-zinc-700 focus:outline-none focus:border-white font-mono text-sm transition-colors rounded-none ${errors.workspaceName ? 'border-red-500/50' : 'border-zinc-800'
+                                }`}
+                            placeholder="e.g. Obsidian Syndicate"
+                            {...register('workspaceName', { required: 'Realm namespace is required' })}
+                        />
+                        {errors.workspaceName && (
+                            <p className="font-mono text-[10px] text-red-500 tracking-widest uppercase mt-2">
+                                ERR: {errors.workspaceName.message}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Email Input */}
+                    <div className="space-y-2">
+                        <label className="block font-mono text-[10px] text-zinc-400 tracking-widest uppercase" htmlFor="email">
+                            Identity [Email]
+                        </label>
+                        <input
+                            id="email"
+                            type="email"
+                            autoComplete="email"
+                            className={`block w-full bg-black border px-4 py-3 text-white placeholder-zinc-700 focus:outline-none focus:border-white font-mono text-sm transition-colors rounded-none ${errors.email ? 'border-red-500/50' : 'border-zinc-800'
+                                }`}
+                            placeholder="admin@akashix.core"
+                            {...register('email', { required: 'Identity string is required' })}
+                        />
+                        {errors.email && (
+                            <p className="font-mono text-[10px] text-red-500 tracking-widest uppercase mt-2">
+                                ERR: {errors.email.message}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Password Input */}
+                    <div className="space-y-2">
+                        <label className="block font-mono text-[10px] text-zinc-400 tracking-widest uppercase" htmlFor="password">
+                            Security Key [Password]
+                        </label>
+                        <input
+                            id="password"
+                            type="password"
+                            autoComplete="new-password"
+                            className={`block w-full bg-black border px-4 py-3 text-white placeholder-zinc-700 focus:outline-none focus:border-white font-mono text-sm transition-colors rounded-none ${errors.password ? 'border-red-500/50' : 'border-zinc-800'
+                                }`}
+                            placeholder="••••••••"
+                            {...register('password', {
+                                required: 'Security key is required',
+                                minLength: { value: 6, message: 'Minimum 6 characters required' }
+                            })}
+                        />
+                        {errors.password && (
+                            <p className="font-mono text-[10px] text-red-500 tracking-widest uppercase mt-2">
+                                ERR: {errors.password.message}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Error State */}
                     {authError && (
-                        <div className="rounded-md bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
-                            {authError}
+                        <div className="border border-red-500/30 bg-red-500/5 p-4 text-center mt-4">
+                            <span className="font-mono text-[10px] text-red-500 tracking-widest uppercase">
+                                SYSTEM_ERR: {authError}
+                            </span>
                         </div>
                     )}
 
+                    {/* Submit Action */}
                     <button
                         type="submit"
                         disabled={loading}
-                        className="group relative flex w-full justify-center rounded-lg border border-zinc-200 bg-zinc-100 px-4 py-3 text-sm font-semibold text-zinc-900 hover:bg-white hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-[#121212] disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200"
+                        className="w-full flex justify-center items-center gap-3 border border-white bg-white px-4 py-4 font-mono text-xs font-bold text-black uppercase tracking-widest hover:bg-black hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-8 rounded-none"
                     >
                         {loading ? (
-                            <Loader2 className="h-5 w-5 animate-spin text-zinc-600" />
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Provisioning...
+                            </>
                         ) : (
-                            'Create Workspace'
+                            <>
+                                <Network className="h-4 w-4" />
+                                Deploy Workspace
+                            </>
                         )}
                     </button>
                 </form>
 
-                <p className="mt-4 text-center text-sm text-zinc-400">
-                    Already have an account?{' '}
-                    <Link to="/login" className="font-medium text-zinc-200 hover:text-white hover:underline transition-colors">
-                        Sign in
+                {/* Back to Login Link */}
+                <div className="mt-8 pt-6 border-t border-zinc-800 text-center flex flex-col gap-2">
+                    <span className="font-mono text-[10px] text-zinc-500 tracking-widest uppercase">
+                        Existing tenant?
+                    </span>
+                    <Link
+                        to="/login"
+                        className="font-mono text-[10px] text-white hover:text-zinc-400 tracking-widest uppercase transition-colors"
+                    >
+                        [ Authenticate Session ]
                     </Link>
-                </p>
+                </div>
             </div>
         </div>
     );
