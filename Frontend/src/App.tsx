@@ -7,6 +7,7 @@ import { DashboardLayout } from './components/DashboardLayout';
 import { Characters } from './components/character';
 import World from './pages/world';
 import Overview from './components/Overview'; // This imports the full metrics dashboard
+import HomeVariantB from './components/Home';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
+          <Route path="/" element={<HomeVariantB />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
@@ -28,7 +30,7 @@ function App() {
           </Route>
 
           {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

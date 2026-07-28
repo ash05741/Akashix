@@ -1,19 +1,17 @@
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@apollo/client/react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Database, Key, Crosshair } from 'lucide-react';
 import { useState } from 'react';
 
 import { useAuth } from '../context/AuthContext';
-import { LOGIN_MUTATION } from '../graphql/auth'; // The file we created earlier
+import { LOGIN_MUTATION } from '../graphql/auth';
 
-// Strict TypeScript interfaces for the form data
 interface LoginFormInputs {
     email: string;
     password: string;
 }
 
-// Tells TypeScript exactly what to expect back from the GraphQL server
 interface LoginResponse {
     login: {
         token: string;
@@ -36,7 +34,6 @@ export const Login = () => {
 
     const [executeLogin, { loading }] = useMutation<LoginResponse>(LOGIN_MUTATION, {
         onCompleted: (data: LoginResponse) => {
-            // Pass the user data and the token straight into the global context
             login(data.login.user, data.login.token);
             navigate('/dashboard');
         },
@@ -51,66 +48,118 @@ export const Login = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-950 px-4 sm:px-6 lg:px-8">
-            <div className="w-full max-w-md space-y-8 rounded-xl bg-gray-900 p-8 shadow-2xl border border-gray-800">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-white tracking-tight">
-                        AkashixCore
+        <div className="flex min-h-screen items-center justify-center bg-black px-4 font-sans selection:bg-zinc-700 selection:text-white relative overflow-hidden">
+
+            {/* Schematic Grid Background */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#18181b_1px,transparent_1px),linear-gradient(to_bottom,#18181b_1px,transparent_1px)] bg-[size:100px_100px] pointer-events-none"></div>
+
+            {/* Login Frame */}
+            <div className="w-full max-w-md relative z-10 border border-zinc-800 bg-black/80 backdrop-blur-md p-8 sm:p-12 shadow-2xl">
+
+                {/* Corner Crosshairs */}
+                <Crosshair className="absolute -top-3 -left-3 w-6 h-6 text-zinc-700" strokeWidth={1} />
+                <Crosshair className="absolute -top-3 -right-3 w-6 h-6 text-zinc-700" strokeWidth={1} />
+                <Crosshair className="absolute -bottom-3 -left-3 w-6 h-6 text-zinc-700" strokeWidth={1} />
+                <Crosshair className="absolute -bottom-3 -right-3 w-6 h-6 text-zinc-700" strokeWidth={1} />
+
+                {/* Header */}
+                <div className="flex flex-col items-center mb-10 border-b border-zinc-800 pb-8 text-center">
+                    <Database className="w-6 h-6 text-white mb-4" strokeWidth={1.5} />
+                    <h2 className="text-3xl font-black text-white tracking-tighter uppercase mb-2 leading-none">
+                        System <br /> Access
                     </h2>
-                    <p className="mt-2 text-center text-sm text-gray-400">
-                        Sign in to access your workspace
+                    <p className="font-mono text-[10px] text-zinc-500 tracking-widest uppercase mt-4">
+                        Provide credentials to initialize workspace
                     </p>
                 </div>
 
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="space-y-4 rounded-md shadow-sm">
-                        <div>
-                            <label className="sr-only" htmlFor="email">Email address</label>
+                {/* Form */}
+                <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+                    <div className="space-y-5">
+
+                        {/* Email Input */}
+                        <div className="space-y-2">
+                            <label className="block font-mono text-[10px] text-zinc-400 tracking-widest uppercase" htmlFor="email">
+                                Identity [Email]
+                            </label>
                             <input
                                 id="email"
                                 type="email"
                                 autoComplete="email"
-                                className={`block w-full rounded-lg border bg-gray-800 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-700'
+                                className={`block w-full bg-black border px-4 py-3 text-white placeholder-zinc-700 focus:outline-none focus:border-white font-mono text-sm transition-colors rounded-none ${errors.email ? 'border-red-500/50' : 'border-zinc-800'
                                     }`}
-                                placeholder="Email address"
-                                {...register('email', { required: 'Email is required' })}
+                                placeholder="sys.admin@akashix.core"
+                                {...register('email', { required: 'Identity string is required' })}
                             />
-                            {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>}
+                            {errors.email && (
+                                <p className="font-mono text-[10px] text-red-500 tracking-widest uppercase mt-2">
+                                    ERR: {errors.email.message}
+                                </p>
+                            )}
                         </div>
 
-                        <div>
-                            <label className="sr-only" htmlFor="password">Password</label>
+                        {/* Password Input */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                                <label className="block font-mono text-[10px] text-zinc-400 tracking-widest uppercase" htmlFor="password">
+                                    Security Key [Password]
+                                </label>
+                            </div>
                             <input
                                 id="password"
                                 type="password"
                                 autoComplete="current-password"
-                                className={`block w-full rounded-lg border bg-gray-800 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm ${errors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-700'
+                                className={`block w-full bg-black border px-4 py-3 text-white placeholder-zinc-700 focus:outline-none focus:border-white font-mono text-sm transition-colors rounded-none ${errors.password ? 'border-red-500/50' : 'border-zinc-800'
                                     }`}
-                                placeholder="Password"
-                                {...register('password', { required: 'Password is required' })}
+                                placeholder="••••••••"
+                                {...register('password', { required: 'Security key is required' })}
                             />
-                            {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>}
+                            {errors.password && (
+                                <p className="font-mono text-[10px] text-red-500 tracking-widest uppercase mt-2">
+                                    ERR: {errors.password.message}
+                                </p>
+                            )}
                         </div>
                     </div>
 
+                    {/* Error State */}
                     {authError && (
-                        <div className="rounded-md bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/50">
-                            {authError}
+                        <div className="border border-red-500/30 bg-red-500/5 p-4 text-center">
+                            <span className="font-mono text-[10px] text-red-500 tracking-widest uppercase">
+                                SYSTEM_ERR: {authError}
+                            </span>
                         </div>
                     )}
 
+                    {/* Submit Action */}
                     <button
                         type="submit"
                         disabled={loading}
-                        className="group relative flex w-full justify-center rounded-lg border border-transparent bg-blue-600 px-4 py-3 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+                        className="w-full flex justify-center items-center gap-3 border border-white bg-white px-4 py-4 font-mono text-xs font-bold text-black uppercase tracking-widest hover:bg-black hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-8 rounded-none"
                     >
                         {loading ? (
-                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Authenticating...
+                            </>
                         ) : (
-                            'Sign in'
+                            <>
+                                <Key className="h-4 w-4" />
+                                Authenticate Node
+                            </>
                         )}
                     </button>
                 </form>
+
+                {/* Back to Terminal / Schematic Link */}
+                <div className="mt-8 pt-6 border-t border-zinc-800 text-center">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="font-mono text-[10px] text-zinc-600 hover:text-white tracking-widest uppercase transition-colors"
+                    >
+                        [ Abort & Return to Core ]
+                    </button>
+                </div>
             </div>
         </div>
     );
