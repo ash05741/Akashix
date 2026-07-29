@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@apollo/client/react';
 import { gql } from '@apollo/client';
 import { BookOpen, Map, Shield, Clock, Plus, Loader2, X, Trash2, AlertTriangle } from 'lucide-react';
 
-// 1. Queries and Mutations
+// 1. Queries and Mutations (Added 'content' to GET_ALL_LORE)
 const GET_ALL_LORE = gql`
   query GetAllLore {
     getAllLore {
@@ -11,6 +11,7 @@ const GET_ALL_LORE = gql`
       title
       category
       summary
+      content
     }
   }
 `;
@@ -22,6 +23,7 @@ const CREATE_LORE = gql`
       title
       category
       summary
+      content
     }
   }
 `;
@@ -32,12 +34,13 @@ const DELETE_LORE = gql`
   }
 `;
 
-// 2. TypeScript Interfaces
+// 2. TypeScript Interfaces (Added 'content')
 interface LoreItem {
     id: string;
     title: string;
     category: string;
     summary: string;
+    content: string;
 }
 
 interface LoreData {
@@ -56,7 +59,10 @@ export default function World() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // NEW: Delete Modal State
+    // NEW: View Lore State
+    const [selectedLore, setSelectedLore] = useState<LoreItem | null>(null);
+
+    // Delete Modal State
     const [loreToDelete, setLoreToDelete] = useState<{ id: string; title: string } | null>(null);
 
     // Form State
@@ -82,11 +88,11 @@ export default function World() {
         }
     });
 
-    // UPDATED: Delete Hook with loading state
     const [deleteLore, { loading: isDeleting }] = useMutation(DELETE_LORE, {
         refetchQueries: [{ query: GET_ALL_LORE }],
         onCompleted: () => {
             setLoreToDelete(null);
+            setSelectedLore(null); // Close reading modal if open while deleting
         },
         onError: (err) => {
             console.error("Delete error:", err.message);
@@ -101,13 +107,11 @@ export default function World() {
         createLore({ variables: formData });
     };
 
-    // NEW: Open modal instead of window.confirm
     const handleDeleteClick = (e: React.MouseEvent, id: string, title: string) => {
-        e.stopPropagation();
+        e.stopPropagation(); // Prevents the card click event from firing when clicking delete
         setLoreToDelete({ id, title });
     };
 
-    // NEW: Execute deletion
     const confirmDelete = () => {
         if (!loreToDelete) return;
         deleteLore({ variables: { id: loreToDelete.id } });
@@ -175,7 +179,11 @@ export default function World() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredLore.map((lore: LoreItem) => (
-                        <div key={lore.id} className="bg-zinc-900 border border-zinc-800 p-5 rounded-lg hover:border-zinc-700 transition-colors group cursor-pointer relative">
+                        <div
+                            key={lore.id}
+                            onClick={() => setSelectedLore(lore)} // NEW: Click card to view
+                            className="bg-zinc-900 border border-zinc-800 p-5 rounded-lg hover:border-zinc-700 hover:shadow-lg transition-all group cursor-pointer relative flex flex-col h-full"
+                        >
                             {/* Card Header with Delete Button */}
                             <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-3">
@@ -198,19 +206,82 @@ export default function World() {
                             <h3 className="text-xl font-semibold text-zinc-100 mb-2 group-hover:text-white transition-colors">
                                 {lore.title}
                             </h3>
-                            <p className="text-sm text-zinc-400 line-clamp-3">
+                            <p className="text-sm text-zinc-400 line-clamp-3 mb-4">
                                 {lore.summary}
                             </p>
+
+                            {/* Visual indicator that there is more to read */}
+                            <div className="mt-auto pt-4 border-t border-zinc-800/50 flex justify-between items-center text-xs text-zinc-500 font-medium">
+                                <span>Click to read entry</span>
+                                <span>{lore.content ? `${Math.ceil(lore.content.length / 5)} words` : 'Empty'}</span>
+                            </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* NEW: Reading / View Lore Modal */}
+            {selectedLore && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedLore(null)}>
+                    <div
+                        className="bg-zinc-950 border border-zinc-800 rounded-xl w-full max-w-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+                        onClick={(e) => e.stopPropagation()} // Prevent clicking inside modal from closing it
+                    >
+                        {/* Header */}
+                        <div className="flex justify-between items-start p-6 border-b border-zinc-800 bg-zinc-900/30 shrink-0">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-zinc-900 rounded-lg border border-zinc-800">
+                                    {categoryIcons[selectedLore.category] || categoryIcons.Default}
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold text-white mb-1">{selectedLore.title}</h2>
+                                    <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                                        {selectedLore.category}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={(e) => handleDeleteClick(e, selectedLore.id, selectedLore.title)}
+                                    className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
+                                    title="Delete"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => setSelectedLore(null)}
+                                    className="p-2 text-zinc-500 hover:text-zinc-100 hover:bg-zinc-800 rounded-md transition-colors"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Body - Where the story actually lives */}
+                        <div className="overflow-y-auto p-6 md:p-8 flex-1 custom-scrollbar">
+                            {selectedLore.summary && (
+                                <div className="mb-8 p-5 bg-zinc-900/50 border border-zinc-800/80 rounded-lg">
+                                    <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">Overview</h4>
+                                    <p className="text-zinc-300 text-sm leading-relaxed">{selectedLore.summary}</p>
+                                </div>
+                            )}
+
+                            <div>
+                                <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4 border-b border-zinc-800 pb-2">Full Database Entry</h4>
+                                <div className="text-zinc-300 leading-loose whitespace-pre-wrap text-[15px]">
+                                    {selectedLore.content || <span className="italic text-zinc-600">No detailed history recorded for this entity.</span>}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
 
             {/* Create Lore Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-zinc-950 border border-zinc-800 rounded-lg w-full max-w-lg shadow-xl overflow-hidden">
-                        <div className="flex justify-between items-center p-4 border-b border-zinc-800 bg-zinc-900/50">
+                    <div className="bg-zinc-950 border border-zinc-800 rounded-lg w-full max-w-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+                        <div className="flex justify-between items-center p-4 border-b border-zinc-800 bg-zinc-900/50 shrink-0">
                             <h2 className="text-lg font-semibold text-zinc-100">Create New Lore Entry</h2>
                             <button
                                 onClick={() => setIsModalOpen(false)}
@@ -220,67 +291,85 @@ export default function World() {
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreate} className="p-5 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-400 mb-1">Title</label>
-                                <input
-                                    required
-                                    type="text"
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-700"
-                                    placeholder="e.g. The Obsidian Citadel"
-                                />
-                            </div>
+                        <div className="overflow-y-auto flex-1 custom-scrollbar">
+                            <form onSubmit={handleCreate} className="p-5 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-1">Title</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-700"
+                                        placeholder="e.g. The Obsidian Citadel"
+                                    />
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-400 mb-1">Category</label>
-                                <select
-                                    value={formData.category}
-                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-700 appearance-none"
-                                >
-                                    <option value="Location">Location</option>
-                                    <option value="Faction">Faction</option>
-                                    <option value="History">History</option>
-                                    <option value="Artifact">Artifact</option>
-                                </select>
-                            </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-1">Category</label>
+                                    <select
+                                        value={formData.category}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-700 appearance-none"
+                                    >
+                                        <option value="Location">Location</option>
+                                        <option value="Faction">Faction</option>
+                                        <option value="History">History</option>
+                                        <option value="Artifact">Artifact</option>
+                                    </select>
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-400 mb-1">Short Summary</label>
-                                <textarea
-                                    maxLength={150}
-                                    value={formData.summary}
-                                    onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-700 resize-none h-20"
-                                    placeholder="Brief description for the grid card..."
-                                />
-                            </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-1">Short Summary</label>
+                                    <textarea
+                                        maxLength={150}
+                                        value={formData.summary}
+                                        onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-700 resize-none h-20"
+                                        placeholder="Brief description for the grid card..."
+                                    />
+                                </div>
 
-                            <div className="pt-4 flex justify-end gap-3 border-t border-zinc-800">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 rounded-md font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isCreating}
-                                    className="flex items-center gap-2 bg-zinc-100 text-zinc-900 hover:bg-zinc-200 px-4 py-2 rounded-md font-medium transition-colors disabled:opacity-50"
-                                >
-                                    {isCreating && <Loader2 className="w-4 h-4 animate-spin" />}
-                                    Create Entry
-                                </button>
-                            </div>
-                        </form>
+                                <div>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="block text-sm font-medium text-zinc-400">Full Lore / Story</label>
+                                        <span className="text-xs text-zinc-500">
+                                            {formData.content.length} / 50,000
+                                        </span>
+                                    </div>
+                                    <textarea
+                                        maxLength={50000}
+                                        value={formData.content}
+                                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-700 resize-y min-h-[200px]"
+                                        placeholder="Write the full history, details, or story here..."
+                                    />
+                                </div>
+
+                                <div className="pt-4 flex justify-end gap-3 border-t border-zinc-800">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsModalOpen(false)}
+                                        className="px-4 py-2 rounded-md font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isCreating}
+                                        className="flex items-center gap-2 bg-zinc-100 text-zinc-900 hover:bg-zinc-200 px-4 py-2 rounded-md font-medium transition-colors disabled:opacity-50"
+                                    >
+                                        {isCreating && <Loader2 className="w-4 h-4 animate-spin" />}
+                                        Create Entry
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* NEW: Delete Confirmation Modal */}
+            {/* Delete Confirmation Modal */}
             {loreToDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-[#121212] p-6 shadow-2xl overflow-hidden relative">

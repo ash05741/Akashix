@@ -21,7 +21,10 @@ interface GetCharactersResponse {
 export const Characters = () => {
     // Modal States
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // NEW: State for tracking the character to delete
+
+    // NEW: View Character State
+    const [selectedChar, setSelectedChar] = useState<Character | null>(null);
+
     const [charToDelete, setCharToDelete] = useState<{ id: string; name: string } | null>(null);
 
     // Form State
@@ -49,7 +52,8 @@ export const Characters = () => {
     const [deleteCharacter, { loading: deleting }] = useMutation(DELETE_CHARACTER, {
         refetchQueries: [{ query: GET_CHARACTERS }],
         onCompleted: () => {
-            setCharToDelete(null); // Close modal on success
+            setCharToDelete(null);
+            setSelectedChar(null); // Close reading modal if open while deleting
         },
         onError: (err) => {
             console.error("Delete error:", err.message);
@@ -76,12 +80,11 @@ export const Characters = () => {
         });
     };
 
-    // NEW: Opens the modal instead of native confirm
-    const handleDeleteClick = (id: string, name: string) => {
+    const handleDeleteClick = (e: React.MouseEvent, id: string, name: string) => {
+        e.stopPropagation(); // Prevent opening the view modal when clicking delete
         setCharToDelete({ id, name });
     };
 
-    // NEW: Actually executes the deletion
     const confirmDelete = () => {
         if (!charToDelete) return;
         deleteCharacter({ variables: { id: charToDelete.id } });
@@ -130,19 +133,23 @@ export const Characters = () => {
             ) : (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {characters.map((char) => (
-                        <div key={char.id} className="rounded-xl border border-zinc-800 bg-[#121212] p-6 hover:border-zinc-700 transition-colors shadow-lg group">
+                        <div
+                            key={char.id}
+                            onClick={() => setSelectedChar(char)} // NEW: Click card to view
+                            className="rounded-xl border border-zinc-800 bg-[#121212] p-6 hover:border-zinc-700 transition-all shadow-lg group cursor-pointer hover:shadow-xl relative flex flex-col h-full"
+                        >
                             <div className="flex items-start justify-between mb-5">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-800/80 border border-zinc-700/50">
                                         <User className="h-5 w-5 text-zinc-400" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-zinc-100">{char.name}</h3>
+                                        <h3 className="text-lg font-semibold text-zinc-100 group-hover:text-white transition-colors">{char.name}</h3>
                                         {char.role && <p className="text-xs text-zinc-500 mt-0.5">{char.role}</p>}
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => handleDeleteClick(char.id, char.name)}
+                                    onClick={(e) => handleDeleteClick(e, char.id, char.name)}
                                     className="text-zinc-600 hover:text-red-400 hover:bg-red-400/10 p-1.5 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                                     title="Delete Character"
                                 >
@@ -150,7 +157,7 @@ export const Characters = () => {
                                 </button>
                             </div>
 
-                            <div className="space-y-2 border-t border-zinc-800/80 pt-4">
+                            <div className="space-y-2 border-t border-zinc-800/80 pt-4 mt-auto">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-zinc-500">Strength</span>
                                     <span className="text-zinc-300 font-medium">{char.stats.strength}</span>
@@ -169,7 +176,66 @@ export const Characters = () => {
                 </div>
             )}
 
-            {/* CREATE MODAL (Unchanged) */}
+            {/* NEW: View Character Modal */}
+            {selectedChar && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedChar(null)}>
+                    <div
+                        className="bg-zinc-950 border border-zinc-800 rounded-xl w-full max-w-md shadow-2xl overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-start p-6 border-b border-zinc-800 bg-zinc-900/30">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800 border border-zinc-700/50">
+                                    <User className="h-6 w-6 text-zinc-400" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold text-white mb-1">{selectedChar.name}</h2>
+                                    {selectedChar.role && (
+                                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                                            {selectedChar.role}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={(e) => handleDeleteClick(e, selectedChar.id, selectedChar.name)}
+                                    className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
+                                    title="Delete"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => setSelectedChar(null)}
+                                    className="p-2 text-zinc-500 hover:text-zinc-100 hover:bg-zinc-800 rounded-md transition-colors"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-6">
+                            <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4 border-b border-zinc-800 pb-2">Entity Core Stats</h4>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center bg-zinc-900/50 p-4 rounded-lg border border-zinc-800/80">
+                                    <span className="text-zinc-400 font-medium">Strength</span>
+                                    <span className="text-zinc-100 font-bold text-xl">{selectedChar.stats.strength}</span>
+                                </div>
+                                <div className="flex justify-between items-center bg-zinc-900/50 p-4 rounded-lg border border-zinc-800/80">
+                                    <span className="text-zinc-400 font-medium">Agility</span>
+                                    <span className="text-zinc-100 font-bold text-xl">{selectedChar.stats.agility}</span>
+                                </div>
+                                <div className="flex justify-between items-center bg-zinc-900/50 p-4 rounded-lg border border-zinc-800/80">
+                                    <span className="text-zinc-400 font-medium">Intelligence</span>
+                                    <span className="text-zinc-100 font-bold text-xl">{selectedChar.stats.intelligence}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CREATE MODAL */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-[#121212] p-6 shadow-2xl">
@@ -183,7 +249,6 @@ export const Characters = () => {
                             </button>
                         </div>
                         <form onSubmit={handleCreate} className="space-y-4">
-                            {/* Form fields omitted for brevity, keep your existing inputs here! */}
                             <div>
                                 <label htmlFor="name" className="block text-sm font-medium text-zinc-400 mb-2">Character Name</label>
                                 <input
@@ -232,11 +297,10 @@ export const Characters = () => {
                 </div>
             )}
 
-            {/* NEW: DELETE CONFIRMATION MODAL */}
+            {/* DELETE CONFIRMATION MODAL */}
             {charToDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-[#121212] p-6 shadow-2xl overflow-hidden relative">
-                        {/* Decorative background glow */}
                         <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-500/10 blur-3xl rounded-full"></div>
 
                         <div className="flex items-center gap-4 mb-4">
