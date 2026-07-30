@@ -35,6 +35,7 @@ extend type Query {
 extend type Mutation {
   createLore(title: String!, category: String!, summary: String, content: String): Lore!
   deleteLore(id: ID!): Boolean!
+  enhanceLore(text: String!): String!
 }
 
   input StatsInput {

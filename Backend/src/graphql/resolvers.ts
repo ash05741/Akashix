@@ -3,12 +3,15 @@ import jwt from 'jsonwebtoken';
 import { Character } from '../models/character.js';
 import { User } from '../models/user.js';
 import Lore from '../models/lore.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface ApolloContext {
     userId?: string;
     workspaceId?: string;
     role?: string;
 }
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
 
 export const resolvers = {
     Query: {
@@ -158,6 +161,30 @@ export const resolvers = {
             }
 
             return true;
+        },
+
+        enhanceLore: async (_: any, { text }: { text: string }) => {
+            try {
+                // Use gemini-1.5-flash for fast text tasks
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+                const prompt = `
+                    You are a strict copyeditor. Fix the grammar, spelling, and punctuation of the following text. 
+                    Do NOT change the creative tone, do NOT add new plot points, and do NOT change character names. 
+                    Return ONLY the corrected text, with no introductory or concluding remarks.
+                    
+                    Text:
+                    ${text}
+                `;
+
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                return response.text().trim();
+
+            } catch (error) {
+                console.error("AI Enhancement Error:", error);
+                throw new Error("Failed to enhance text.");
+            }
         }
     },
 };
