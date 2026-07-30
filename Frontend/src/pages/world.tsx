@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@apollo/client/react';
 import { gql } from '@apollo/client';
 import { BookOpen, Map, Shield, Clock, Plus, Loader2, X, Trash2, AlertTriangle } from 'lucide-react';
 
-// 1. Queries and Mutations (Added 'content' to GET_ALL_LORE)
+// 1. Queries and Mutations
 const GET_ALL_LORE = gql`
   query GetAllLore {
     getAllLore {
@@ -34,7 +34,13 @@ const DELETE_LORE = gql`
   }
 `;
 
-// 2. TypeScript Interfaces (Added 'content')
+const ENHANCE_LORE = gql`
+  mutation EnhanceLore($text: String!) {
+    enhanceLore(text: $text)
+  }
+`;
+
+// 2. TypeScript Interfaces
 interface LoreItem {
     id: string;
     title: string;
@@ -45,6 +51,10 @@ interface LoreItem {
 
 interface LoreData {
     getAllLore: LoreItem[];
+}
+
+interface EnhanceLoreData {
+    enhanceLore: string;
 }
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -59,7 +69,7 @@ export default function World() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // NEW: View Lore State
+    // View Lore State
     const [selectedLore, setSelectedLore] = useState<LoreItem | null>(null);
 
     // Delete Modal State
@@ -73,6 +83,9 @@ export default function World() {
         content: ''
     });
 
+    // NEW: AI Backup State
+    const [backupContent, setBackupContent] = useState<string | null>(null);
+
     // Apollo Hooks
     const { data, loading, error } = useQuery<LoreData>(GET_ALL_LORE);
 
@@ -81,6 +94,7 @@ export default function World() {
         onCompleted: () => {
             setIsModalOpen(false);
             setFormData({ title: '', category: 'Location', summary: '', content: '' });
+            setBackupContent(null); // Clear backup on success
         },
         onError: (err) => {
             console.error("Mutation error:", err.message);
@@ -92,12 +106,27 @@ export default function World() {
         refetchQueries: [{ query: GET_ALL_LORE }],
         onCompleted: () => {
             setLoreToDelete(null);
-            setSelectedLore(null); // Close reading modal if open while deleting
+            setSelectedLore(null);
         },
         onError: (err) => {
             console.error("Delete error:", err.message);
             alert(`Failed to delete lore: ${err.message}`);
             setLoreToDelete(null);
+        }
+    });
+
+    // NEW: AI Enhance Hook
+    const [enhanceLore, { loading: isEnhancing }] = useMutation<EnhanceLoreData>(ENHANCE_LORE, {
+        onCompleted: (data) => {
+            // TypeScript now knows 'data' has an 'enhanceLore' string property
+            if (data?.enhanceLore) {
+                setFormData({ ...formData, content: data.enhanceLore });
+            }
+        },
+        onError: (err) => {
+            console.error("AI Enhance error:", err.message);
+            alert(`Failed to enhance text: ${err.message}`);
+            setBackupContent(null); // Clear backup if AI fails
         }
     });
 
@@ -108,13 +137,32 @@ export default function World() {
     };
 
     const handleDeleteClick = (e: React.MouseEvent, id: string, title: string) => {
-        e.stopPropagation(); // Prevents the card click event from firing when clicking delete
+        e.stopPropagation();
         setLoreToDelete({ id, title });
     };
 
     const confirmDelete = () => {
         if (!loreToDelete) return;
         deleteLore({ variables: { id: loreToDelete.id } });
+    };
+
+    // NEW: AI Handlers
+    const handleAIEnhance = () => {
+        if (!formData.content.trim()) return;
+        setBackupContent(formData.content); // Save snapshot before overriding
+        enhanceLore({ variables: { text: formData.content } });
+    };
+
+    const handleUndoAI = () => {
+        if (backupContent !== null) {
+            setFormData({ ...formData, content: backupContent });
+            setBackupContent(null); // Clear snapshot after reverting
+        }
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setBackupContent(null); // Clean up if user closes modal without saving
     };
 
     if (loading) {
@@ -181,7 +229,7 @@ export default function World() {
                     {filteredLore.map((lore: LoreItem) => (
                         <div
                             key={lore.id}
-                            onClick={() => setSelectedLore(lore)} // NEW: Click card to view
+                            onClick={() => setSelectedLore(lore)}
                             className="bg-zinc-900 border border-zinc-800 p-5 rounded-lg hover:border-zinc-700 hover:shadow-lg transition-all group cursor-pointer relative flex flex-col h-full"
                         >
                             {/* Card Header with Delete Button */}
@@ -210,7 +258,6 @@ export default function World() {
                                 {lore.summary}
                             </p>
 
-                            {/* Visual indicator that there is more to read */}
                             <div className="mt-auto pt-4 border-t border-zinc-800/50 flex justify-between items-center text-xs text-zinc-500 font-medium">
                                 <span>Click to read entry</span>
                                 <span>{lore.content ? `${Math.ceil(lore.content.length / 5)} words` : 'Empty'}</span>
@@ -220,14 +267,13 @@ export default function World() {
                 </div>
             )}
 
-            {/* NEW: Reading / View Lore Modal */}
+            {/* Reading / View Lore Modal */}
             {selectedLore && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedLore(null)}>
                     <div
                         className="bg-zinc-950 border border-zinc-800 rounded-xl w-full max-w-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-                        onClick={(e) => e.stopPropagation()} // Prevent clicking inside modal from closing it
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Header */}
                         <div className="flex justify-between items-start p-6 border-b border-zinc-800 bg-zinc-900/30 shrink-0">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-zinc-900 rounded-lg border border-zinc-800">
@@ -257,7 +303,6 @@ export default function World() {
                             </div>
                         </div>
 
-                        {/* Body - Where the story actually lives */}
                         <div className="overflow-y-auto p-6 md:p-8 flex-1 custom-scrollbar">
                             {selectedLore.summary && (
                                 <div className="mb-8 p-5 bg-zinc-900/50 border border-zinc-800/80 rounded-lg">
@@ -284,7 +329,7 @@ export default function World() {
                         <div className="flex justify-between items-center p-4 border-b border-zinc-800 bg-zinc-900/50 shrink-0">
                             <h2 className="text-lg font-semibold text-zinc-100">Create New Lore Entry</h2>
                             <button
-                                onClick={() => setIsModalOpen(false)}
+                                onClick={handleCloseModal}
                                 className="text-zinc-400 hover:text-zinc-100 transition-colors"
                             >
                                 <X className="w-5 h-5" />
@@ -330,26 +375,68 @@ export default function World() {
                                     />
                                 </div>
 
+                                {/* AI Enhanced Text Area Section */}
                                 <div>
-                                    <div className="flex justify-between items-center mb-1">
+                                    <div className="flex justify-between items-end mb-2">
                                         <label className="block text-sm font-medium text-zinc-400">Full Lore / Story</label>
-                                        <span className="text-xs text-zinc-500">
-                                            {formData.content.length} / 50,000
-                                        </span>
+
+                                        <div className="flex items-center gap-3">
+                                            {backupContent ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleUndoAI}
+                                                    className="text-xs text-red-400 hover:text-red-300 font-medium px-2 py-1 bg-red-400/10 rounded-md transition-colors"
+                                                >
+                                                    Revert to Original
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAIEnhance}
+                                                    disabled={isEnhancing || !formData.content.trim()}
+                                                    className="flex items-center gap-1 text-xs text-zinc-300 hover:text-white font-medium px-2 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-md transition-colors disabled:opacity-50"
+                                                >
+                                                    {isEnhancing ? <Loader2 className="w-3 h-3 animate-spin" /> : '✨'}
+                                                    {isEnhancing ? 'Enhancing...' : 'AI Enhance'}
+                                                </button>
+                                            )}
+
+                                            <span className="text-xs text-zinc-500">
+                                                {formData.content.length} / 50,000
+                                            </span>
+                                        </div>
                                     </div>
-                                    <textarea
-                                        maxLength={50000}
-                                        value={formData.content}
-                                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-700 resize-y min-h-[200px]"
-                                        placeholder="Write the full history, details, or story here..."
-                                    />
+
+                                    {/* NEW: Relative container for the Glassmorphism Overlay */}
+                                    <div className="relative">
+                                        {/* The Glass Overlay */}
+                                        {isEnhancing && (
+                                            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-zinc-950/40 backdrop-blur-md rounded-md border border-zinc-800/50 transition-all duration-300">
+                                                <Loader2 className="w-8 h-8 animate-spin text-zinc-300 mb-3" />
+                                                <span className="text-sm font-medium text-zinc-200 tracking-wide animate-pulse">
+                                                    Refining lore...
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <textarea
+                                            maxLength={50000}
+                                            value={formData.content}
+                                            disabled={isEnhancing}
+                                            onChange={(e) => {
+                                                setFormData({ ...formData, content: e.target.value });
+                                                if (backupContent) setBackupContent(null);
+                                            }}
+                                            className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-700 resize-y min-h-[200px] disabled:opacity-50"
+                                            placeholder="Write the full history, details, or story here..."
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="pt-4 flex justify-end gap-3 border-t border-zinc-800">
                                     <button
                                         type="button"
-                                        onClick={() => setIsModalOpen(false)}
+                                        onClick={handleCloseModal}
                                         className="px-4 py-2 rounded-md font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors"
                                     >
                                         Cancel
@@ -373,7 +460,6 @@ export default function World() {
             {loreToDelete && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-[#121212] p-6 shadow-2xl overflow-hidden relative">
-                        {/* Decorative background glow */}
                         <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-500/10 blur-3xl rounded-full"></div>
 
                         <div className="flex items-center gap-4 mb-4">
