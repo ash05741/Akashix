@@ -24,29 +24,32 @@ app.use(
     express.json(),
     expressMiddleware(apolloServer, {
         context: async ({ req }): Promise<ApolloContext> => {
-            // 1. Grab the Authorization header (e.g., "Bearer eyJhbGci...")
+            // 1. Grab the Authorization header
             const authHeader = req.headers.authorization || '';
 
-            // 2. If there's no token, return an empty context (Login/Register will still work)
+            // 2. NEW: Grab the workspace ID from custom headers (Express lowercases headers automatically)
+            const workspaceId = req.headers['x-workspace-id'] as string | undefined;
+
+            // 3. If there's no token, return context with only workspaceId (Login/Register still works)
             if (!authHeader.startsWith('Bearer ')) {
-                return {};
+                return { workspaceId };
             }
 
-            // 3. Extract and verify the token
+            // 4. Extract and verify the token
             const token = authHeader.split(' ')[1];
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
 
-                // 4. Securely pass the verified data to our GraphQL resolvers
+                // 5. Combine the secure identity from the JWT with the workspace route from the header
                 return {
                     userId: decoded.userId,
-                    workspaceId: decoded.workspaceId,
                     role: decoded.role,
+                    workspaceId: workspaceId, // Now injected dynamically per-request!
                 };
             } catch (err) {
-                // If the token is expired or fake, we reject the context
+                // If the token is expired or fake, reject auth but keep workspace context just in case
                 console.warn('⚠️ Invalid or expired token rejected.');
-                return {};
+                return { workspaceId };
             }
         },
     })
