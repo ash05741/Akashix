@@ -3,8 +3,8 @@ import jwt from 'jsonwebtoken';
 import { Character } from '../models/character.js';
 import { User } from '../models/user.js';
 import Lore from '../models/lore.js';
+import { Workspace } from '../models/workspace.js'; // <-- NEW: Import Workspace model
 
-// 1. Updated Import for the new unified SDK
 import { GoogleGenAI } from '@google/genai';
 
 export interface ApolloContext {
@@ -13,12 +13,18 @@ export interface ApolloContext {
     role?: string;
 }
 
-// 2. Initialize the new SDK (Removed the unused 'model' variable from here)
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
 
 export const resolvers = {
     Query: {
         serverStatus: () => 'AkashixCore Backend Online',
+
+        // --- WORKSPACES ---
+        getMyWorkspaces: async (_parent: any, _args: any, context: ApolloContext) => {
+            if (!context.userId) throw new Error('Unauthorized: Missing User ID');
+            // Fetch all workspaces owned by the currently logged-in user
+            return await Workspace.find({ ownerId: context.userId }).sort({ createdAt: -1 });
+        },
 
         // --- CHARACTERS ---
         getCharacters: async (_parent: any, _args: any, context: ApolloContext) => {
@@ -29,7 +35,6 @@ export const resolvers = {
         // --- LORE ---
         getAllLore: async (_parent: any, _args: any, context: ApolloContext) => {
             if (!context.workspaceId) throw new Error('Unauthorized: Missing workspace ID');
-            // Sorting by createdAt descending puts the newest lore at the top
             return await Lore.find({ workspaceId: context.workspaceId }).sort({ createdAt: -1 });
         },
 
@@ -42,8 +47,8 @@ export const resolvers = {
     Mutation: {
         // --- AUTHENTICATION ---
         register: async (_parent: any, args: any) => {
-            // 1. Extract workspaceName from the GraphQL args
-            const { name, email, password, workspaceName } = args;
+            // REMOVED: workspaceName
+            const { name, email, password } = args;
 
             const existingUser = await User.findOne({ email });
             if (existingUser) {
@@ -56,15 +61,13 @@ export const resolvers = {
                 name,
                 email,
                 passwordHash,
-                // 2. Give Mongoose the key it is begging for (workspaceId), 
-                // but feed it the value from the schema (workspaceName)
-                workspaceId: workspaceName,
                 role: 'OWNER'
             });
             await user.save();
 
+            // Token now ONLY contains userId and role. It does NOT contain a workspaceId.
             const token = jwt.sign(
-                { userId: user.id, workspaceId: user.workspaceId, role: user.role },
+                { userId: user.id, role: user.role },
                 process.env.JWT_SECRET as string,
                 { expiresIn: '7d' }
             );
@@ -75,21 +78,19 @@ export const resolvers = {
         login: async (_parent: any, args: any) => {
             const { email, password } = args;
 
-            // 1. Find the user
             const user = await User.findOne({ email });
             if (!user) {
                 throw new Error('Invalid credentials.');
             }
 
-            // 2. Compare passwords
             const isValid = await bcrypt.compare(password, user.passwordHash);
             if (!isValid) {
                 throw new Error('Invalid credentials.');
             }
 
-            // 3. Generate the JWT
+            // Token now ONLY contains userId and role. It does NOT contain a workspaceId.
             const token = jwt.sign(
-                { userId: user.id, workspaceId: user.workspaceId, role: user.role },
+                { userId: user.id, role: user.role },
                 process.env.JWT_SECRET as string,
                 { expiresIn: '7d' }
             );
@@ -97,23 +98,33 @@ export const resolvers = {
             return { token, user };
         },
 
+        // --- WORKSPACE MANAGEMENT ---
+        createWorkspace: async (_parent: any, { name, description }: { name: string, description?: string }, context: ApolloContext) => {
+            if (!context.userId) throw new Error('Unauthorized: Missing User ID');
+
+            const newWorkspace = new Workspace({
+                name,
+                description,
+                ownerId: context.userId
+            });
+
+            return await newWorkspace.save();
+        },
+
         // --- CHARACTER MANAGEMENT ---
         createCharacter: async (_: any, args: any, context: ApolloContext) => {
-            // MATCHED TO LORE: Check context.workspaceId directly
             if (!context.workspaceId) {
                 throw new Error("Unauthorized: No workspace ID found");
             }
 
             const { name, role, has3DModel, stats } = args;
 
-            // Create and Save to Mongoose
             const newCharacter = new Character({
                 workspaceId: context.workspaceId,
                 name,
                 role,
                 has3DModel: has3DModel || false,
                 stats: {
-                    // If they didn't provide a specific stat, fallback to the default of 10
                     strength: stats?.strength ?? 10,
                     agility: stats?.agility ?? 10,
                     intelligence: stats?.intelligence ?? 10,
@@ -125,20 +136,17 @@ export const resolvers = {
         },
 
         deleteCharacter: async (_: any, { id }: { id: string }, context: ApolloContext) => {
-            // 1. Check auth exactly like the others
             if (!context.workspaceId) {
                 throw new Error("Unauthorized: No workspace ID found");
             }
 
-            // 2. Find it and make sure it belongs to this workspace (security measure)
             const character = await Character.findOne({ _id: id, workspaceId: context.workspaceId });
             if (!character) {
                 throw new Error("Character not found or you don't have permission to delete it.");
             }
 
-            // 3. Delete it
             await Character.findByIdAndDelete(id);
-            return true; // Matches the Boolean! in typeDefs
+            return true;
         },
 
         // --- LORE MANAGEMENT ---
@@ -156,7 +164,6 @@ export const resolvers = {
         deleteLore: async (_parent: any, { id }: { id: string }, context: ApolloContext) => {
             if (!context.workspaceId) throw new Error('Unauthorized: Missing workspace ID');
 
-            // Scoped to workspaceId so tenants cannot delete each other's lore
             const result = await Lore.findOneAndDelete({ _id: id, workspaceId: context.workspaceId });
 
             if (!result) {
@@ -166,7 +173,7 @@ export const resolvers = {
             return true;
         },
 
-        // 3. Updated AI Mutation using the new SDK syntax
+        // --- AI TOOLS ---
         enhanceLore: async (_: any, { text }: { text: string }) => {
             try {
                 const prompt = `

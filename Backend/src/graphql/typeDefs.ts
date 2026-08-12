@@ -16,27 +16,27 @@ export const typeDefs = `#graphql
     createdAt: String!
     updatedAt: String!
   }
-    type Lore {
-  id: ID!
-  title: String!
-  category: String!
-  summary: String
-  content: String
-  workspaceId: ID!
-  createdAt: String
-  updatedAt: String
-}
 
-extend type Query {
-  getAllLore: [Lore!]!
-  getLoreByCategory(category: String!): [Lore!]!
-}
+  type Lore {
+    id: ID!
+    title: String!
+    category: String!
+    summary: String
+    content: String
+    workspaceId: ID!
+    createdAt: String
+    updatedAt: String
+  }
 
-extend type Mutation {
-  createLore(title: String!, category: String!, summary: String, content: String): Lore!
-  deleteLore(id: ID!): Boolean!
-  enhanceLore(text: String!): String!
-}
+  # --- NEW: Workspace Type ---
+  type Workspace {
+    id: ID!
+    name: String!
+    description: String
+    ownerId: ID!
+    createdAt: String
+    updatedAt: String
+  }
 
   input StatsInput {
     strength: Int
@@ -44,12 +44,12 @@ extend type Mutation {
     intelligence: Int
   }
 
-  # --- New Auth Types ---
+  # --- Auth Types ---
   type User {
     id: ID!
     name: String!
     email: String!
-    workspaceId: String!
+    # REMOVED: workspaceId: String! (User is no longer tied to one workspace)
     role: String!
   }
 
@@ -60,17 +60,31 @@ extend type Mutation {
 
   type Query {
     serverStatus: String!
+    
+    # Existing
     getCharacters: [Character!]!
+    getAllLore: [Lore!]!
+    getLoreByCategory(category: String!): [Lore!]!
+    
+    # NEW: Fetch workspaces for the logged-in user
+    getMyWorkspaces: [Workspace!]!
   }
 
   type Mutation {
-    # Existing
+    # Existing Characters
     createCharacter(name: String!, role: String!, has3DModel: Boolean, stats: StatsInput): Character!
-    
     deleteCharacter(id: ID!): Boolean!
 
-    # New Auth Mutations
-    register(name: String!, email: String!, password: String!, workspaceName: String!): AuthPayload
+    # Existing Lore
+    createLore(title: String!, category: String!, summary: String, content: String): Lore!
+    deleteLore(id: ID!): Boolean!
+    enhanceLore(text: String!): String!
+
+    # Auth Mutations (Removed workspaceName from register)
+    register(name: String!, email: String!, password: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload!
+    
+    # NEW: Workspace Mutation
+    createWorkspace(name: String!, description: String): Workspace!
   }
 `;
