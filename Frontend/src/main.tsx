@@ -1,28 +1,33 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-// Everything imports cleanly from the core package now
 import {
   ApolloClient,
   InMemoryCache,
   HttpLink,
   ApolloLink
 } from '@apollo/client';
-import { ApolloProvider } from '@apollo/client/react'; // <-- Direct React import
+import { ApolloProvider } from '@apollo/client/react';
 import App from './App';
-import './index.css'; // Make sure this points to your Tailwind file
+import './index.css';
 
 // 1. Point to your local backend using the modern HttpLink class
 const httpLink = new HttpLink({
   uri: 'http://localhost:4000/graphql'
 });
 
-// 2. Use ApolloLink to intercept requests and inject the JWT
+// 2. Intercept requests to inject BOTH the JWT and the Workspace ID
 const authLink = new ApolloLink((operation, forward) => {
   const token = localStorage.getItem('akashix_token');
+
+  // NEW: Grab the workspace ID from local storage
+  const workspaceId = localStorage.getItem('workspaceId');
 
   operation.setContext({
     headers: {
       authorization: token ? `Bearer ${token}` : '',
+
+      // NEW: Inject the workspace ID into the custom header
+      'x-workspace-id': workspaceId || '',
     }
   });
 

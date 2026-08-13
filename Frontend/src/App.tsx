@@ -9,6 +9,9 @@ import World from './pages/world';
 import Overview from './components/Overview'; // This imports the full metrics dashboard
 import HomeVariantB from './components/Home';
 
+// 1. NEW IMPORT: We will create this file next
+import Workspaces from './pages/Workspaces';
+
 function App() {
   return (
     <AuthProvider>
@@ -21,12 +24,18 @@ function App() {
 
           {/* Secure Routes (Requires Login) */}
           <Route element={<ProtectedRoute />}>
+
+            {/* 2. NEW ROUTE: The Interstitial Screen */}
+            {/* It sits outside DashboardLayout because it shouldn't have the sidebar! */}
+            <Route path="/workspaces" element={<Workspaces />} />
+
             {/* The Layout (Sidebar) wraps everything inside it */}
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Overview />} />
               <Route path="/dashboard/characters" element={<Characters />} />
               <Route path="/dashboard/world" element={<World />} />
             </Route>
+
           </Route>
 
           {/* Catch-all redirect */}

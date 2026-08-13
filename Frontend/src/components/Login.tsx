@@ -19,7 +19,7 @@ interface LoginResponse {
             id: string;
             name: string;
             email: string;
-            workspaceId: string;
+            // ❌ REMOVED workspaceId since it no longer exists on the User model
             role: string;
         };
     };
@@ -35,7 +35,8 @@ export const Login = () => {
     const [executeLogin, { loading }] = useMutation<LoginResponse>(LOGIN_MUTATION, {
         onCompleted: (data: LoginResponse) => {
             login(data.login.user, data.login.token);
-            navigate('/dashboard');
+            // ✅ CHANGED: Now redirects to the new Workspaces grid
+            navigate('/workspaces');
         },
         onError: (error: Error) => {
             setAuthError(error.message || 'Invalid credentials');

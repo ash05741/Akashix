@@ -6,13 +6,14 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { REGISTER_MUTATION } from '../graphql/auth';
 
+// 1. Removed workspaceName
 interface RegisterFormInputs {
     name: string;
     email: string;
     password: string;
-    workspaceName: string;
 }
 
+// 2. Removed workspaceId from the expected User response
 interface RegisterResponse {
     register: {
         token: string;
@@ -20,7 +21,6 @@ interface RegisterResponse {
             id: string;
             name: string;
             email: string;
-            workspaceId: string;
             role: string;
         };
     };
@@ -36,7 +36,8 @@ export const Register = () => {
     const [executeRegister, { loading }] = useMutation<RegisterResponse>(REGISTER_MUTATION, {
         onCompleted: (data) => {
             login(data.register.user, data.register.token);
-            navigate('/dashboard');
+            // 3. Changed redirect to the new Workspaces grid
+            navigate('/workspaces');
         },
         onError: (error) => {
             setAuthError(error.message || 'Registration failed');
@@ -49,8 +50,8 @@ export const Register = () => {
             variables: {
                 name: data.name,
                 email: data.email,
-                password: data.password,
-                workspaceName: data.workspaceName
+                password: data.password
+                // 4. Removed workspaceName from the variables
             }
         });
     };
@@ -77,7 +78,7 @@ export const Register = () => {
                         Deploy <br /> Node
                     </h2>
                     <p className="font-mono text-[10px] text-zinc-500 tracking-widest uppercase mt-4">
-                        Initialize new tenant workspace
+                        Initialize new user identity
                     </p>
                 </div>
 
@@ -104,25 +105,7 @@ export const Register = () => {
                         )}
                     </div>
 
-                    {/* Workspace Input */}
-                    <div className="space-y-2">
-                        <label className="block font-mono text-[10px] text-zinc-400 tracking-widest uppercase" htmlFor="workspaceName">
-                            Tenant Realm [Workspace]
-                        </label>
-                        <input
-                            id="workspaceName"
-                            type="text"
-                            className={`block w-full bg-black border px-4 py-3 text-white placeholder-zinc-700 focus:outline-none focus:border-white font-mono text-sm transition-colors rounded-none ${errors.workspaceName ? 'border-red-500/50' : 'border-zinc-800'
-                                }`}
-                            placeholder="e.g. Obsidian Syndicate"
-                            {...register('workspaceName', { required: 'Realm namespace is required' })}
-                        />
-                        {errors.workspaceName && (
-                            <p className="font-mono text-[10px] text-red-500 tracking-widest uppercase mt-2">
-                                ERR: {errors.workspaceName.message}
-                            </p>
-                        )}
-                    </div>
+                    {/* 5. REMOVED the Workspace Input Block entirely */}
 
                     {/* Email Input */}
                     <div className="space-y-2">
@@ -192,7 +175,7 @@ export const Register = () => {
                         ) : (
                             <>
                                 <Network className="h-4 w-4" />
-                                Deploy Workspace
+                                Deploy Account
                             </>
                         )}
                     </button>
