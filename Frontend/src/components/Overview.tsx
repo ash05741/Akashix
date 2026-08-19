@@ -2,7 +2,6 @@ import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
 import { BookOpen, Users, Shield, ArrowUpRight, Plus, Sparkles, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // 1. Import useAuth
 
 // Query to pull counts or summary data for the workspace
 const GET_OVERVIEW_DATA = gql`
@@ -38,7 +37,9 @@ interface OverviewData {
 }
 
 export default function Overview() {
-    const { workspaceName } = useAuth(); // 2. Extract workspaceName from context
+    // 1. Fetch workspace name directly from localStorage
+    const workspaceName = localStorage.getItem('workspaceName') || 'Unknown Node';
+
     const { data, loading, error } = useQuery<OverviewData>(GET_OVERVIEW_DATA);
 
     if (loading) {
@@ -75,9 +76,9 @@ export default function Overview() {
                         <Sparkles className="w-4 h-4 text-zinc-400" />
                         Workspace Command Center
                     </div>
-                    {/* 3. Replaced static text with dynamic workspaceName */}
-                    <h1 className="text-3xl font-bold tracking-tight text-white">
-                        {workspaceName ? `${workspaceName} Dashboard` : 'World Dashboard'}
+                    {/* 2. Using the dynamically loaded workspaceName */}
+                    <h1 className="text-3xl font-bold tracking-tight text-white uppercase font-mono">
+                        {workspaceName}
                     </h1>
                     <p className="text-zinc-400 text-sm mt-1">Monitor your realm's entities, lore fragments, and active entities.</p>
                 </div>

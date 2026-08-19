@@ -1,10 +1,15 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, Settings, LogOut, Menu, X, Hexagon, Crosshair } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, Settings, LogOut, Menu, X, Hexagon, Crosshair, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 
 export const DashboardLayout = () => {
-    const { logout, workspaceName } = useAuth();
+    // 1. FIXED: Removed workspaceName from useAuth
+    const { logout } = useAuth();
+
+    // 2. FIXED: Pull workspaceName directly from localStorage
+    const workspaceName = localStorage.getItem('workspaceName') || 'ROOT_WORKSPACE';
+
     const location = useLocation();
     const navigate = useNavigate();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -53,10 +58,9 @@ export const DashboardLayout = () => {
                 <div className="px-6 py-6 border-b border-zinc-800 shrink-0 bg-zinc-950/50">
                     <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-3">Tenant_Realm</p>
                     <div className="flex items-center gap-3">
-                        {/* Replaced the green dot with a flashing schematic block */}
                         <div className="w-1.5 h-3 bg-white animate-pulse"></div>
                         <p className="font-mono text-xs font-bold text-white uppercase truncate tracking-wider">
-                            {workspaceName || 'ROOT_WORKSPACE'}
+                            {workspaceName}
                         </p>
                     </div>
                 </div>

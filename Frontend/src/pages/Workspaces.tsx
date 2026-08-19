@@ -54,7 +54,8 @@ export default function Workspaces() {
             setIsModalOpen(false);
             setFormData({ name: '', description: '' });
             if (result?.createWorkspace) {
-                handleEnterWorkspace(result.createWorkspace.id);
+                // UPDATE 1: Pass both ID and Name when creating a new workspace
+                handleEnterWorkspace(result.createWorkspace.id, result.createWorkspace.name);
             }
         },
         onError: (err) => {
@@ -69,8 +70,10 @@ export default function Workspaces() {
         createWorkspace({ variables: formData });
     };
 
-    const handleEnterWorkspace = (workspaceId: string) => {
-        localStorage.setItem('workspaceId', workspaceId);
+    // UPDATE 2: Modify the function to accept and save the name
+    const handleEnterWorkspace = (id: string, name: string) => {
+        localStorage.setItem('workspaceId', id);
+        localStorage.setItem('workspaceName', name);
         navigate('/dashboard');
     };
 
@@ -152,7 +155,8 @@ export default function Workspaces() {
                         {workspaces.map((workspace) => (
                             <div
                                 key={workspace.id}
-                                onClick={() => handleEnterWorkspace(workspace.id)}
+                                // UPDATE 3: Pass both ID and Name when a card is clicked
+                                onClick={() => handleEnterWorkspace(workspace.id, workspace.name)}
                                 className="relative border border-zinc-800 bg-black/80 backdrop-blur-sm p-8 group hover:border-white hover:bg-zinc-900/30 transition-all cursor-pointer flex flex-col h-full min-h-[200px]"
                             >
                                 {/* Corner Accents */}
