@@ -6,11 +6,10 @@ import { Register } from './components/Register';
 import { DashboardLayout } from './components/DashboardLayout';
 import { Characters } from './components/character';
 import World from './pages/world';
-import Overview from './components/Overview'; // This imports the full metrics dashboard
+import Overview from './components/Overview';
 import HomeVariantB from './components/Home';
-
-// 1. NEW IMPORT: We will create this file next
 import Workspaces from './pages/Workspaces';
+import UserProfile from './pages/UserProfile';
 
 function App() {
   return (
@@ -25,8 +24,7 @@ function App() {
           {/* Secure Routes (Requires Login) */}
           <Route element={<ProtectedRoute />}>
 
-            {/* 2. NEW ROUTE: The Interstitial Screen */}
-            {/* It sits outside DashboardLayout because it shouldn't have the sidebar! */}
+            {/* The Interstitial Screen */}
             <Route path="/workspaces" element={<Workspaces />} />
 
             {/* The Layout (Sidebar) wraps everything inside it */}
@@ -34,6 +32,9 @@ function App() {
               <Route path="/dashboard" element={<Overview />} />
               <Route path="/dashboard/characters" element={<Characters />} />
               <Route path="/dashboard/world" element={<World />} />
+
+              {/* 2. NEW ROUTE: User Profile Network */}
+              <Route path="/dashboard/user/:id" element={<UserProfile />} />
             </Route>
 
           </Route>

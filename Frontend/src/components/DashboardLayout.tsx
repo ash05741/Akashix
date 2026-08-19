@@ -1,13 +1,10 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, Settings, LogOut, Menu, X, Hexagon, Crosshair, Search } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, Settings, LogOut, Menu, X, Hexagon, Crosshair } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 
 export const DashboardLayout = () => {
-    // 1. FIXED: Removed workspaceName from useAuth
     const { logout } = useAuth();
-
-    // 2. FIXED: Pull workspaceName directly from localStorage
     const workspaceName = localStorage.getItem('workspaceName') || 'ROOT_WORKSPACE';
 
     const location = useLocation();
@@ -114,8 +111,11 @@ export const DashboardLayout = () => {
                     <Crosshair className="absolute top-4 left-4 w-6 h-6 text-zinc-800 hidden md:block" strokeWidth={1} />
                     <Crosshair className="absolute top-4 right-4 w-6 h-6 text-zinc-800 hidden md:block" strokeWidth={1} />
 
-                    <div className="max-w-7xl mx-auto h-full">
+                    <div className="max-w-7xl mx-auto h-full flex flex-col gap-6">
+
+                        {/* Existing content pages load here */}
                         <Outlet />
+
                     </div>
                 </div>
             </main>
