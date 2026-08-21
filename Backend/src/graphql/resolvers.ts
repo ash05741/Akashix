@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { Character } from '../models/character.js';
 import { User } from '../models/user.js';
 import Lore from '../models/lore.js';
-import { Workspace } from '../models/workspace.js'; // <-- NEW: Import Workspace model
+import { Workspace } from '../models/workspace.js';
 
 import { GoogleGenAI } from '@google/genai';
 
@@ -24,6 +24,43 @@ export const resolvers = {
             if (!context.userId) throw new Error('Unauthorized: Missing User ID');
             // Fetch all workspaces owned by the currently logged-in user
             return await Workspace.find({ ownerId: context.userId }).sort({ createdAt: -1 });
+        },
+
+        getWorkspace: async (_parent: any, { id }: { id: string }, context: ApolloContext) => {
+            if (!context.userId) throw new Error('Unauthorized');
+            const workspace = await Workspace.findOne({ _id: id, ownerId: context.userId });
+            if (!workspace) throw new Error('Workspace not found');
+            return workspace;
+        },
+
+        // --- SOCIAL & DISCOVERY (NEW) ---
+        searchUsers: async (_parent: any, { query }: { query: string }, context: ApolloContext) => {
+            if (!context.userId) throw new Error('Unauthorized: Authentication required');
+
+            // Search users by name, case-insensitive, limited to 10 results
+            return await User.find({
+                name: { $regex: query, $options: 'i' }
+            }).limit(10);
+        },
+
+        getUserProfile: async (_parent: any, { userId }: { userId: string }, context: ApolloContext) => {
+            if (!context.userId) throw new Error('Unauthorized: Authentication required');
+
+            // 1. Fetch the target user
+            const targetUser = await User.findById(userId);
+            if (!targetUser) throw new Error('User not found');
+
+            // 2. Fetch ONLY their public workspaces using your ownerId field
+            const publicWorkspaces = await Workspace.find({
+                ownerId: userId,
+                isPublic: true
+            });
+
+            // 3. Return the bundled profile shape expected by GraphQL
+            return {
+                user: targetUser,
+                publicWorkspaces: publicWorkspaces
+            };
         },
 
         // --- CHARACTERS ---
@@ -47,7 +84,6 @@ export const resolvers = {
     Mutation: {
         // --- AUTHENTICATION ---
         register: async (_parent: any, args: any) => {
-            // REMOVED: workspaceName
             const { name, email, password } = args;
 
             const existingUser = await User.findOne({ email });
@@ -65,7 +101,6 @@ export const resolvers = {
             });
             await user.save();
 
-            // Token now ONLY contains userId and role. It does NOT contain a workspaceId.
             const token = jwt.sign(
                 { userId: user.id, role: user.role },
                 process.env.JWT_SECRET as string,
@@ -88,7 +123,6 @@ export const resolvers = {
                 throw new Error('Invalid credentials.');
             }
 
-            // Token now ONLY contains userId and role. It does NOT contain a workspaceId.
             const token = jwt.sign(
                 { userId: user.id, role: user.role },
                 process.env.JWT_SECRET as string,
@@ -109,6 +143,19 @@ export const resolvers = {
             });
 
             return await newWorkspace.save();
+        },
+
+        updateWorkspacePrivacy: async (_parent: any, { id, isPublic }: { id: string, isPublic: boolean }, context: ApolloContext) => {
+            if (!context.userId) throw new Error('Unauthorized');
+
+            const workspace = await Workspace.findOneAndUpdate(
+                { _id: id, ownerId: context.userId },
+                { isPublic },
+                { new: true }
+            );
+
+            if (!workspace) throw new Error('Workspace not found or unauthorized');
+            return workspace;
         },
 
         // --- CHARACTER MANAGEMENT ---

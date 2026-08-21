@@ -28,12 +28,13 @@ export const typeDefs = `#graphql
     updatedAt: String
   }
 
-  # --- NEW: Workspace Type ---
+  # --- Workspace Type ---
   type Workspace {
     id: ID!
     name: String!
     description: String
     ownerId: ID!
+    isPublic: Boolean! # <-- NEW: Privacy flag
     createdAt: String
     updatedAt: String
   }
@@ -49,7 +50,6 @@ export const typeDefs = `#graphql
     id: ID!
     name: String!
     email: String!
-    # REMOVED: workspaceId: String! (User is no longer tied to one workspace)
     role: String!
   }
 
@@ -58,16 +58,28 @@ export const typeDefs = `#graphql
     user: User!
   }
 
+  # --- NEW: Social Profile Type ---
+  type UserProfile {
+    user: User!
+    publicWorkspaces: [Workspace!]!
+  }
+
   type Query {
     serverStatus: String!
+
+    getWorkspace(id: ID!): Workspace!
     
     # Existing
     getCharacters: [Character!]!
     getAllLore: [Lore!]!
     getLoreByCategory(category: String!): [Lore!]!
     
-    # NEW: Fetch workspaces for the logged-in user
+    # Workspaces
     getMyWorkspaces: [Workspace!]!
+
+    # NEW: Social & Discovery
+    searchUsers(query: String!): [User!]!
+    getUserProfile(userId: ID!): UserProfile!
   }
 
   type Mutation {
@@ -80,11 +92,12 @@ export const typeDefs = `#graphql
     deleteLore(id: ID!): Boolean!
     enhanceLore(text: String!): String!
 
-    # Auth Mutations (Removed workspaceName from register)
+    # Auth Mutations
     register(name: String!, email: String!, password: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload!
     
-    # NEW: Workspace Mutation
+    # Workspace Mutation
     createWorkspace(name: String!, description: String): Workspace!
+    updateWorkspacePrivacy(id: ID!, isPublic: Boolean!): Workspace!
   }
 `;
