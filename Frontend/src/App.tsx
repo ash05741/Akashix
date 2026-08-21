@@ -11,6 +11,10 @@ import HomeVariantB from './components/Home';
 import Workspaces from './pages/Workspaces';
 import UserProfile from './pages/UserProfile';
 
+// 1. IMPORT THE SETTINGS PAGE
+// (Adjust this path to './pages/Settings' if you saved it in the pages folder instead)
+import { Settings } from './components/Settings';
+
 function App() {
   return (
     <AuthProvider>
@@ -33,7 +37,10 @@ function App() {
               <Route path="/dashboard/characters" element={<Characters />} />
               <Route path="/dashboard/world" element={<World />} />
 
-              {/* 2. NEW ROUTE: User Profile Network */}
+              {/* 2. ADD THE SETTINGS ROUTE HERE */}
+              <Route path="/dashboard/settings" element={<Settings />} />
+
+              {/* User Profile Network */}
               <Route path="/dashboard/user/:id" element={<UserProfile />} />
             </Route>
 
