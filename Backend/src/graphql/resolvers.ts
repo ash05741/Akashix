@@ -66,7 +66,7 @@ export const resolvers = {
         // --- CHARACTERS ---
         getCharacters: async (_parent: any, _args: any, context: ApolloContext) => {
             if (!context.workspaceId) throw new Error('Unauthorized: Missing workspace ID');
-            return await Character.find({ workspaceId: context.workspaceId });
+            return await Character.find({ workspaceId: context.workspaceId }).populate('relatedLore');
         },
 
         // --- LORE ---

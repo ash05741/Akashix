@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 // 1. Define the TypeScript Interface for strict typing
 export interface ICharacter extends Document {
-    workspaceId: string; // Crucial for multi-tenant isolation
+    workspaceId: string;
     name: string;
     role: string;
     stats: {
@@ -11,7 +11,7 @@ export interface ICharacter extends Document {
         intelligence: number;
     };
     has3DModel: boolean;
-    loreNodes: mongoose.Types.ObjectId[];
+    relatedLore: mongoose.Types.ObjectId[]; // FIXED: Added this to match the schema below
 }
 
 // 2. Define the Mongoose Schema
@@ -26,10 +26,15 @@ const CharacterSchema = new Schema<ICharacter>(
             intelligence: { type: Number, default: 10 },
         },
         has3DModel: { type: Boolean, default: false },
-        loreNodes: [{ type: Schema.Types.ObjectId, ref: 'LoreNode' }], // Will link to the Lore tables later
+
+        // FIXED: Kept only relatedLore, making sure 'ref' points to your exact Lore model name
+        relatedLore: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Lore'
+        }]
     },
     {
-        timestamps: true // Automatically adds createdAt and updatedAt
+        timestamps: true
     }
 );
 
