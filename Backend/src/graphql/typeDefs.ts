@@ -15,6 +15,7 @@ export const typeDefs = `#graphql
     has3DModel: Boolean!
     createdAt: String!
     updatedAt: String!
+    relatedLore: [LoreItem]
   }
 
   type Lore {
@@ -84,7 +85,7 @@ export const typeDefs = `#graphql
 
   type Mutation {
     # Existing Characters
-    createCharacter(name: String!, role: String!, has3DModel: Boolean, stats: StatsInput): Character!
+    createCharacter(name: String!, role: String!, has3DModel: Boolean, stats: StatsInput, relatedLore: [ID]): Character!
     deleteCharacter(id: ID!): Boolean!
 
     # Existing Lore
