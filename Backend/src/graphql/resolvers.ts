@@ -159,12 +159,14 @@ export const resolvers = {
         },
 
         // --- CHARACTER MANAGEMENT ---
+        // --- CHARACTER MANAGEMENT ---
         createCharacter: async (_: any, args: any, context: ApolloContext) => {
             if (!context.workspaceId) {
                 throw new Error("Unauthorized: No workspace ID found");
             }
 
-            const { name, role, has3DModel, stats } = args;
+            // FIXED: We extracted relatedLoreIds from the incoming args!
+            const { name, role, has3DModel, stats, relatedLoreIds } = args;
 
             const newCharacter = new Character({
                 workspaceId: context.workspaceId,
@@ -176,10 +178,13 @@ export const resolvers = {
                     agility: stats?.agility ?? 10,
                     intelligence: stats?.intelligence ?? 10,
                 },
+                relatedLore: relatedLoreIds || []
             });
 
             await newCharacter.save();
-            return newCharacter;
+
+            // FIXED: We populate the lore data before sending it back to the frontend
+            return await newCharacter.populate('relatedLore');
         },
 
         deleteCharacter: async (_: any, { id }: { id: string }, context: ApolloContext) => {
