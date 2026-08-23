@@ -21,8 +21,8 @@ export const GET_CHARACTERS = gql`
 `;
 
 export const CREATE_CHARACTER = gql`
-    mutation CreateCharacter($name: String!, $role: String, $stats: StatsInput, $relatedLoreIds: [ID!]) {
-        createCharacter(name: $name, role: $role, stats: $stats, relatedLoreIds: $relatedLoreIds) {
+    mutation CreateCharacter($name: String!, $role: String!, $stats: StatsInput, $relatedLore: [ID!]) {
+        createCharacter(name: $name, role: $role, stats: $stats, relatedLore: $relatedLore) {
             id
             name
         }
