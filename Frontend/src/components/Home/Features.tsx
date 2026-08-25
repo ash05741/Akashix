@@ -9,7 +9,7 @@ const features = [
     {
         icon: Users,
         title: 'Characters',
-        desc: 'Build deep, narrative-driven characters your readers will care about and remember forever.',
+        desc: 'Build deep, narrative-driven characters your readers will care about and remember.',
     },
     {
         icon: Link2,
@@ -31,7 +31,7 @@ const features = [
 export default function Features() {
     return (
         <section className="bg-[#FAF6ED] py-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <div className="max-w-8xl mx-auto px-4 sm:px-15">
                 <div className="text-center max-w-2xl mx-auto mb-16">
                     {/* Increased from text-xs to text-sm */}
                     <span className="text-amber-600 text-sm font-semibold tracking-widest uppercase">
@@ -50,7 +50,7 @@ export default function Features() {
                     </p>
                 </div>
 
-                <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-10">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
                     {features.map(({ icon: Icon, title, desc }) => (
                         <div
                             key={title}
