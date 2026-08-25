@@ -7,7 +7,7 @@ import { DashboardLayout } from './components/DashboardLayout';
 import { Characters } from './components/character';
 import World from './pages/world';
 import Overview from './components/Overview';
-import HomeVariantB from './components/Home';
+import HomeVariantB from './components/Home/Home';
 import Workspaces from './pages/Workspaces';
 import UserProfile from './pages/UserProfile';
 
