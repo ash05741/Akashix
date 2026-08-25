@@ -1,4 +1,5 @@
 import { BookOpen, Users, Link2, FileText, LayoutGrid } from 'lucide-react';
+import { motion } from 'motion/react';
 
 const features = [
     {
@@ -32,43 +33,47 @@ export default function Features() {
     return (
         <section className="bg-[#FAF6ED] py-24">
             <div className="max-w-8xl mx-auto px-4 sm:px-15">
-                <div className="text-center max-w-2xl mx-auto mb-16">
-                    {/* Increased from text-xs to text-sm */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="text-center max-w-2xl mx-auto mb-16"
+                >
                     <span className="text-amber-600 text-sm font-semibold tracking-widest uppercase">
                         Powerful tools for every story
                     </span>
 
-                    {/* Increased from 3xl/4xl to 4xl/5xl */}
                     <h2 className="font-serif text-4xl sm:text-5xl font-semibold text-zinc-900 mt-3 mb-4">
                         Everything connected. Every detail matters.
                     </h2>
 
-                    {/* Added text-lg */}
                     <p className="text-lg text-zinc-600 leading-relaxed">
                         From the smallest village to the deepest history, keep your world
                         rich, connected, and ready to tell.
                     </p>
-                </div>
+                </motion.div>
 
                 <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    {features.map(({ icon: Icon, title, desc }) => (
-                        <div
+                    {features.map(({ icon: Icon, title, desc }, index) => (
+                        <motion.div
                             key={title}
-                            className="bg-white border border-zinc-200 rounded-xl p-6 hover:border-amber-300 hover:shadow-sm transition-all"
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-50px" }}
+                            transition={{ duration: 0.6, delay: index * 0.1, ease: "easeOut" }}
+                            className="group bg-white border border-zinc-200 rounded-xl p-6 hover:border-amber-300 hover:shadow-[0_8px_30px_-5px_rgba(0,0,0,0.08)] hover:-translate-y-1.5 transition-all duration-500 cursor-pointer"
                         >
-                            <Icon className="w-8 h-8 text-emerald-800 mb-4" strokeWidth={1.5} />
+                            <Icon className="w-8 h-8 text-emerald-800 mb-4 transition-transform duration-500 group-hover:scale-110 group-hover:-translate-y-1" strokeWidth={1.5} />
 
-                            {/* Added text-lg for slightly bigger card headers */}
                             <h3 className="text-lg font-semibold text-zinc-900 mb-2">{title}</h3>
 
-                            {/* Increased from text-sm to text-base (which is Tailwind's default, so we just remove text-sm) */}
                             <p className="text-base text-zinc-500 leading-relaxed mb-4">{desc}</p>
 
-                            {/* Increased from text-sm to text-base */}
-                            <button className="text-amber-600 text-base font-medium hover:text-amber-700">
-                                Learn more →
+                            <button className="flex items-center gap-1.5 text-amber-600 text-base font-medium transition-colors duration-300 group-hover:text-amber-700">
+                                Learn more <span className="transition-transform duration-300 group-hover:translate-x-1.5">→</span>
                             </button>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             </div>
