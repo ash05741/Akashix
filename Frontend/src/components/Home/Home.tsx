@@ -1,6 +1,6 @@
 import Navbar from './Navbar';
-//import Hero from './Hero';
-//import Features from './Features';
+import Hero from './Hero';
+import Features from './Features';
 //import WorkspacePreview from './WorkspacePreview';
 //import CommunityStats from './CommunityStats';
 //import Testimonials from './Testimonials';
@@ -11,9 +11,9 @@ export default function Home() {
     return (
         <div className="min-h-screen">
             <Navbar />
-            {/*<Hero />
+            <Hero />
             <Features />
-            <WorkspacePreview />
+            {/*<WorkspacePreview />
             <CommunityStats />
             <Testimonials />
             <CTABanner />

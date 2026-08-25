@@ -14,23 +14,23 @@ export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <header className="sticky top-0 z-50 bg-[#0B1210]/95 backdrop-blur-sm border-b border-white/10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
+        <header className="sticky top-0 z-50 bg-[#081B21] backdrop-blur-sm border-b border-white/10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
 
                 {/* Logo */}
                 <Link to="/" className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-amber-400" strokeWidth={1.75} />
-                    <span className="font-semibold tracking-tight text-white text-lg">
+                    <Sparkles className="w-8 h-8 text-amber-400" strokeWidth={1.75} />
+                    <span className="font-roboto font-semibold tracking-tight text-white text-xl">
                         AKASHIX<span className="text-amber-400">CORE</span>
                     </span>
                 </Link>
 
                 {/* Desktop Nav */}
-                <nav className="hidden lg:flex items-center gap-8">
+                <nav className="font-roboto hidden lg:flex items-center gap-10">
                     {navLinks.map((link) => (
                         <button
                             key={link.label}
-                            className="flex items-center gap-1 text-sm text-zinc-300 hover:text-white transition-colors"
+                            className="flex items-center gap-1 text-md text-zinc-300 hover:text-white transition-colors"
                         >
                             {link.label}
                             {link.hasDropdown && <ChevronDown className="w-3.5 h-3.5" />}
@@ -42,13 +42,13 @@ export default function Navbar() {
                 <div className="hidden lg:flex items-center gap-3">
                     <Link
                         to="/login"
-                        className="text-sm text-zinc-300 hover:text-white transition-colors px-3 py-2"
+                        className="text-md font-bold text-zinc-300 hover:text-white transition-colors px-3 py-2"
                     >
                         Log in
                     </Link>
                     <Link
                         to="/register"
-                        className="bg-amber-400 hover:bg-amber-300 text-[#0B1210] text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+                        className="bg-amber-400 hover:bg-amber-300 text-[#0B1210] text-md font-semibold px-5 py-2.5 rounded-lg transition-colors"
                     >
                         Get Started Free
                     </Link>
