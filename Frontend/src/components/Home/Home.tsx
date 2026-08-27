@@ -4,8 +4,8 @@ import Features from './Features';
 import WorkspacePreview from './WorkspacePreview';
 import CommunityStats from './CommunityStats';
 import Testimonials from './Testimonials';
-//import CTABanner from './Homepage/CTABanner';
-//import Footer from './Homepage/Footer';
+import CTABanner from './CTABanner';
+import Footer from './Footer';
 
 export default function Home() {
     return (
@@ -16,8 +16,8 @@ export default function Home() {
             <WorkspacePreview />
             <CommunityStats />
             <Testimonials />
-            {/*<CTABanner />
-            <Footer />*/}
+            <CTABanner />
+            <Footer />
         </div>
     );
 }

@@ -21,24 +21,38 @@ export default function Testimonials() {
     return (
         <section className="bg-[#FAF6ED] pb-24">
             <div className="max-w-7xl mx-auto px-4 sm:px-8">
-                <div className="text-center mb-12">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="text-center mb-12"
+                >
                     <span className="text-amber-600 text-xs font-semibold tracking-widest uppercase">
                         Loved by writers
                     </span>
                     <h3 className="font-serif text-3xl font-semibold text-zinc-900 mt-3">
                         See what creators are saying
                     </h3>
-                </div>
+                </motion.div>
 
-                <div className="flex items-center gap-4">
-                    <button
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+                    className="flex items-center gap-4"
+                >
+                    <motion.button
                         onClick={prev}
                         disabled={start === 0}
-                        className="hidden sm:flex w-10 h-10 rounded-full border border-zinc-300 items-center justify-center disabled:opacity-30 disabled:hover:scale-100 disabled:hover:border-zinc-300 disabled:hover:bg-transparent transition-all duration-300 shrink-0 hover:scale-110 active:scale-95 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-700 hover:shadow-md cursor-pointer"
+                        whileHover={start !== 0 ? { scale: 1.1 } : {}}
+                        whileTap={start !== 0 ? { scale: 0.9 } : {}}
+                        className="hidden sm:flex w-10 h-10 rounded-full border border-zinc-300 items-center justify-center disabled:opacity-30 disabled:border-zinc-300 disabled:bg-transparent transition-colors duration-300 shrink-0 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-700 hover:shadow-md cursor-pointer"
                         aria-label="Previous"
                     >
                         <ChevronLeft className="w-4 h-4 transition-transform duration-300 hover:-translate-x-0.5" />
-                    </button>
+                    </motion.button>
 
                     <div className="overflow-hidden flex-1 py-4">
                         <motion.div
@@ -68,26 +82,38 @@ export default function Testimonials() {
                         </motion.div>
                     </div>
 
-                    <button
+                    <motion.button
                         onClick={next}
                         disabled={start === maxStart}
-                        className="hidden sm:flex w-10 h-10 rounded-full border border-zinc-300 items-center justify-center disabled:opacity-30 disabled:hover:scale-100 disabled:hover:border-zinc-300 disabled:hover:bg-transparent transition-all duration-300 shrink-0 hover:scale-110 active:scale-95 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-700 hover:shadow-md cursor-pointer"
+                        whileHover={start !== maxStart ? { scale: 1.1 } : {}}
+                        whileTap={start !== maxStart ? { scale: 0.9 } : {}}
+                        className="hidden sm:flex w-10 h-10 rounded-full border border-zinc-300 items-center justify-center disabled:opacity-30 disabled:border-zinc-300 disabled:bg-transparent transition-colors duration-300 shrink-0 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-700 hover:shadow-md cursor-pointer"
                         aria-label="Next"
                     >
                         <ChevronRight className="w-4 h-4 transition-transform duration-300 hover:translate-x-0.5" />
-                    </button>
-                </div>
+                    </motion.button>
+                </motion.div>
 
-                <div className="flex justify-center gap-1.5 mt-6">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.4 }}
+                    className="flex justify-center gap-2 mt-6"
+                >
                     {Array.from({ length: maxStart + 1 }).map((_, i) => (
-                        <button
+                        <motion.button
                             key={i}
                             onClick={() => setStart(i)}
-                            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 hover:scale-150 cursor-pointer ${i === start ? 'bg-zinc-800 scale-125' : 'bg-zinc-300 hover:bg-zinc-400'}`}
+                            animate={{ scale: i === start ? 1.3 : 1 }}
+                            whileHover={{ scale: 1.5 }}
+                            whileTap={{ scale: 0.9 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 cursor-pointer ${i === start ? 'bg-zinc-800' : 'bg-zinc-300 hover:bg-zinc-400'}`}
                             aria-label={`Go to slide ${i + 1}`}
                         />
                     ))}
-                </div>
+                </motion.div>
             </div>
         </section>
     );
