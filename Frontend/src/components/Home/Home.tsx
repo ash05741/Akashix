@@ -9,6 +9,7 @@ import Footer from './Footer';
 
 export default function Home() {
     return (
+        // TODO: ADD ANIMATED BACKGROUND LIKE THE HOME PAGE IN THE IMAGE
         <div className="min-h-screen">
             <Navbar />
             <Hero />
