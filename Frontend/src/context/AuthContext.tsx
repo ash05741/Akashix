@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useApolloClient } from '@apollo/client/react'; // <-- ADDED THIS
 
 // 1. Updated User interface (workspaceId/workspaceName removed)
 interface User {
@@ -11,8 +12,8 @@ interface User {
 interface AuthContextType {
     user: User | null;
     token: string | null;
-    login: (userData: User, token: string) => void;
-    logout: () => void;
+    login: (userData: User, token: string) => Promise<void>; // <-- Updated to Promise
+    logout: () => Promise<void>; // <-- Updated to Promise
     isAuthenticated: boolean;
     isLoading: boolean;
 }
@@ -20,6 +21,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+    const client = useApolloClient(); // <-- ADDED THIS to get access to the cache
+
     // Initialize state synchronously from localStorage on frame 1
     const [token, setToken] = useState<string | null>(() => {
         return localStorage.getItem('akashix_token');
@@ -36,7 +39,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsLoading(false);
     }, []);
 
-    const login = (userData: User, newToken: string) => {
+    // Made this async so we can await the cache clearing
+    const login = async (userData: User, newToken: string) => {
+        // FORCE WIPE APOLLO CACHE on login to prevent cross-account data leaks
+        await client.clearStore();
+
         localStorage.setItem('akashix_token', newToken);
         localStorage.setItem('akashix_user', JSON.stringify(userData));
 
@@ -44,14 +51,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(userData);
     };
 
-    const logout = () => {
+    // Made this async so we can await the cache clearing
+    const logout = async () => {
         // Clear auth tokens and active workspace selection on signout
         localStorage.removeItem('akashix_token');
         localStorage.removeItem('akashix_user');
         localStorage.removeItem('workspaceId');
+        localStorage.removeItem('workspaceName'); // Good practice to clear this too
 
         setToken(null);
         setUser(null);
+
+        // FORCE WIPE APOLLO CACHE on logout
+        await client.clearStore();
     };
 
     return (
