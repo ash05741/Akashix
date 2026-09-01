@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { gql } from '@apollo/client';
-import { Plus, Loader2, X, Server, Terminal, ChevronRight, User as UserIcon, Globe, Lock, Code, Box, Calendar, Sparkles, BookOpen } from 'lucide-react';
+import { Plus, Loader2, X, Server, Terminal, ChevronRight, User as UserIcon, Globe, Lock, Code, Box, Calendar, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GlobalSearch } from '../components/GlobalSearch';
+import { useAuth } from '../context/AuthContext'; // <-- Imported useAuth
 
 // --- GraphQL Operations ---
 const GET_MY_WORKSPACES = gql`
@@ -49,6 +50,8 @@ interface CreateWorkspaceData {
 
 export default function Workspaces() {
     const navigate = useNavigate();
+    const { user } = useAuth(); // <-- Pulled user data from context
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({ name: '', description: '' });
 
@@ -108,7 +111,9 @@ export default function Workspaces() {
 
     const workspaces = data?.getMyWorkspaces || [];
     const publicCount = workspaces.filter(ws => ws.isPublic).length;
-    const creatorName = "System Admin";
+
+    // <-- Replaced hardcoded "System Admin" with actual user name
+    const creatorName = user?.name || "Verified Creator";
 
     return (
         <div className="min-h-screen bg-[#FAF6ED] font-sans selection:bg-amber-200 selection:text-black relative overflow-x-hidden text-zinc-800">
@@ -155,8 +160,9 @@ export default function Workspaces() {
                                 {creatorName}
                             </h1>
                             <div className="flex flex-wrap items-center gap-2.5 text-xs">
-                                <span className="flex items-center gap-1.5 bg-white border border-zinc-200 px-3 py-1.5 rounded-lg font-medium text-zinc-700 shadow-sm">
-                                    <Code className="w-3.5 h-3.5 text-[#d9a05b]" /> Full-Stack Architect
+                                {/* <-- Added dynamic role from AuthContext */}
+                                <span className="flex items-center gap-1.5 bg-white border border-zinc-200 px-3 py-1.5 rounded-lg font-medium text-zinc-700 shadow-sm capitalize">
+                                    <Code className="w-3.5 h-3.5 text-[#d9a05b]" /> {user?.role || 'Creator'}
                                 </span>
                                 <span className="flex items-center gap-1.5 bg-white border border-zinc-200 px-3 py-1.5 rounded-lg font-medium text-zinc-700 shadow-sm">
                                     <Box className="w-3.5 h-3.5 text-[#d9a05b]" /> 3D Entity Modeler
