@@ -158,6 +158,22 @@ export const resolvers = {
             return workspace;
         },
 
+        deleteWorkspace: async (_parent: any, { id }: { id: string }, context: ApolloContext) => {
+            if (!context.userId) throw new Error('Unauthorized: Missing User ID');
+
+            const workspace = await Workspace.findOne({ _id: id, ownerId: context.userId });
+            if (!workspace) {
+                throw new Error('Workspace not found or unauthorized to delete.');
+            }
+
+            await Character.deleteMany({ workspaceId: id });
+            await Lore.deleteMany({ workspaceId: id });
+
+            await Workspace.findByIdAndDelete(id);
+
+            return true;
+        },
+
         // --- CHARACTER MANAGEMENT ---
         createCharacter: async (_: any, args: any, context: ApolloContext) => {
             if (!context.workspaceId) {

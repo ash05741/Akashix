@@ -100,5 +100,6 @@ export const typeDefs = `#graphql
     # Workspace Mutation
     createWorkspace(name: String!, description: String): Workspace!
     updateWorkspacePrivacy(id: ID!, isPublic: Boolean!): Workspace!
+    deleteWorkspace(id: ID!): Boolean!
   }
 `;
