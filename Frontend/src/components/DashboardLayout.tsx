@@ -24,13 +24,13 @@ export const DashboardLayout = () => {
     };
 
     return (
-        <div className="flex min-h-screen bg-[#FAF6ED] text-zinc-800 font-sans selection:bg-amber-200 selection:text-black overflow-hidden relative">
+        <div className="flex min-h-screen bg-[#FAF6ED] text-zinc-900 font-sans selection:bg-amber-200 selection:text-black overflow-hidden relative">
 
             {/* Mobile Menu Button */}
             <div className="md:hidden fixed top-4 left-4 z-50">
                 <button
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="p-3 bg-white border border-zinc-200 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300 transition-colors rounded-xl shadow-sm"
+                    className="p-3 bg-white border border-zinc-200 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300 transition-all rounded-2xl shadow-sm cursor-pointer"
                 >
                     {isMobileMenuOpen ? <X className="w-5 h-5" strokeWidth={1.5} /> : <Menu className="w-5 h-5" strokeWidth={1.5} />}
                 </button>
@@ -38,29 +38,33 @@ export const DashboardLayout = () => {
 
             {/* Sidebar Navigation */}
             <aside className={`
-                fixed inset-y-0 left-0 z-40 w-64 border-r border-zinc-200 bg-white/90 backdrop-blur-md transform transition-transform duration-300 ease-in-out flex flex-col shadow-sm
+                fixed inset-y-0 left-0 z-40 w-64 border-r border-zinc-200/80 bg-white/95 backdrop-blur-md transform transition-transform duration-300 ease-in-out flex flex-col shadow-sm
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
                 md:relative md:translate-x-0
             `}>
                 {/* Brand Header */}
-                <div className="flex items-center gap-3 h-16 px-6 border-b border-zinc-100 shrink-0">
-                    <Hexagon className="w-5 h-5 text-[#d9a05b]" strokeWidth={2} />
-                    <span className="font-serif text-sm font-bold tracking-wider text-zinc-900 uppercase">AKASHIX<span className="text-[#d9a05b]">CORE</span></span>
+                <div className="flex items-center gap-3 h-20 px-6 border-b border-zinc-100 shrink-0">
+                    <div className="p-2 bg-[#081B21] rounded-xl shadow-inner">
+                        <Hexagon className="w-4 h-4 text-[#d9a05b]" strokeWidth={2.2} />
+                    </div>
+                    <span className="font-serif text-sm font-bold tracking-wider text-zinc-900 uppercase">
+                        AKASHIX<span className="text-[#d9a05b]">CORE</span>
+                    </span>
                 </div>
 
                 {/* Workspace Indicator */}
-                <div className="px-6 py-5 border-b border-zinc-100 shrink-0 bg-zinc-50/50">
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Current Workspace</p>
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-1.5 h-3 bg-[#d9a05b] rounded-full animate-pulse"></div>
-                        <p className="text-xs font-bold text-zinc-900 uppercase truncate tracking-wide">
-                            {workspaceName}
-                        </p>
-                    </div>
+                <div className="px-6 py-5 border-b border-zinc-100 shrink-0 bg-zinc-50/70">
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#d9a05b]"></div>
+                        Current Workspace
+                    </p>
+                    <p className="font-serif text-xs font-bold text-zinc-900 uppercase truncate tracking-wide bg-white border border-zinc-200/80 px-3 py-2 rounded-xl shadow-xs">
+                        {workspaceName}
+                    </p>
                 </div>
 
                 {/* Navigation Links */}
-                <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+                <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
                     <div className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase mb-3 px-3">
                         Active Modules
                     </div>
@@ -74,14 +78,15 @@ export const DashboardLayout = () => {
                                 to={item.path}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={`
-                                    flex items-center gap-3 px-3.5 py-3 text-xs font-bold tracking-wide uppercase transition-all rounded-xl border
+                                    flex items-center gap-3 px-4 py-3 text-xs font-bold tracking-wider uppercase transition-all duration-200 rounded-2xl border cursor-pointer
+                                    hover:-translate-y-0.5 active:translate-y-0.5
                                     ${isActive
-                                        ? 'bg-amber-100/70 text-amber-950 border-amber-200 shadow-sm'
-                                        : 'bg-transparent text-zinc-600 border-transparent hover:bg-zinc-100 hover:text-zinc-900'
+                                        ? 'bg-[#081B21] text-white border-[#081B21] shadow-md'
+                                        : 'bg-transparent text-zinc-600 border-transparent hover:bg-zinc-100/80 hover:text-zinc-900'
                                     }
                                 `}
                             >
-                                <Icon className={`w-4 h-4 ${isActive ? 'text-amber-700' : 'text-zinc-400'}`} strokeWidth={1.8} />
+                                <Icon className={`w-4 h-4 ${isActive ? 'text-[#d9a05b]' : 'text-zinc-400'}`} strokeWidth={1.8} />
                                 {item.name}
                             </Link>
                         );
@@ -92,7 +97,7 @@ export const DashboardLayout = () => {
                 <div className="p-4 border-t border-zinc-100 shrink-0 bg-white">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center justify-center gap-2.5 w-full px-4 py-2.5 border border-zinc-200 text-xs font-bold tracking-wider uppercase text-zinc-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50/50 transition-colors rounded-xl shadow-sm cursor-pointer"
+                        className="flex items-center justify-center gap-2.5 w-full px-4 py-3 border border-zinc-200 text-xs font-bold tracking-wider uppercase text-zinc-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50/50 transition-all duration-200 rounded-2xl shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 cursor-pointer"
                     >
                         <LogOut className="w-4 h-4" strokeWidth={1.8} />
                         Disconnect
@@ -102,7 +107,6 @@ export const DashboardLayout = () => {
 
             {/* Main Content Area */}
             <main className="flex-1 relative z-10 flex flex-col h-screen overflow-hidden bg-[#FAF6ED]">
-                {/* RESTORED PADDING HERE: p-6 md:p-10 pt-20 md:pt-10 */}
                 <div className="flex-1 w-full p-6 md:p-10 pt-20 md:pt-10 overflow-y-auto relative custom-scrollbar">
                     <div className="max-w-7xl mx-auto h-full flex flex-col">
                         <Outlet />
