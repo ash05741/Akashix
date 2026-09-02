@@ -1,19 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedRoute } from './components/Dashboard/ProtectedRoute';
 import { Login } from './components/Login';
 import { Register } from './components/Register';
 import { DashboardLayout } from './components/DashboardLayout';
-import { Characters } from './components/character';
-import World from './pages/world';
-import Overview from './components/Overview';
+import { Characters } from './components/Dashboard/character';
+import World from './components/Dashboard/world';
+import Overview from './components/Dashboard/Overview';
 import HomeVariantB from './components/Home/Home';
-import Workspaces from './pages/Workspaces';
+import Workspaces from './components/Dashboard/Workspaces';
 import UserProfile from './pages/UserProfile';
 
 // 1. IMPORT THE SETTINGS PAGE
 // (Adjust this path to './pages/Settings' if you saved it in the pages folder instead)
-import { Settings } from './components/Settings';
+import { Settings } from './components/Dashboard/Settings';
 
 function App() {
   return (
