@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLazyQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
 import { Search, Loader2, User as UserIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const SEARCH_USERS = gql`
     query SearchUsers($query: String!) {
@@ -20,7 +21,6 @@ interface SearchResult {
     role: string;
 }
 
-// 1. ADDED: We tell TypeScript exactly what the GraphQL response looks like
 interface SearchUsersData {
     searchUsers: SearchResult[];
 }
@@ -31,7 +31,6 @@ export const GlobalSearch = () => {
     const navigate = useNavigate();
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    // 2. FIXED: Pass the <SearchUsersData> interface into the hook
     const [executeSearch, { data, loading }] = useLazyQuery<SearchUsersData>(SEARCH_USERS);
 
     useEffect(() => {
@@ -63,9 +62,9 @@ export const GlobalSearch = () => {
     const searchResults = data?.searchUsers || [];
 
     return (
-        <div ref={wrapperRef} className="relative w-full max-w-md z-50">
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" strokeWidth={1.5} />
+        <div ref={wrapperRef} className="relative w-full z-50 px-4 py-2">
+            <div className="relative group">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-[#d9a05b] transition-colors" strokeWidth={2} />
                 <input
                     type="text"
                     value={searchTerm}
@@ -74,44 +73,54 @@ export const GlobalSearch = () => {
                         setIsOpen(true);
                     }}
                     onFocus={() => setIsOpen(true)}
-                    placeholder="Search for creators or nodes..."
-                    className="w-full bg-black border border-zinc-800 py-2.5 pl-10 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white transition-colors font-mono rounded-none"
+                    placeholder="Search creators..."
+                    className="w-full bg-zinc-100/50 border border-zinc-200 py-2.5 pl-10 pr-10 text-xs font-bold tracking-wide text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#d9a05b] focus:bg-white transition-all rounded-xl shadow-inner"
                 />
                 {loading && (
-                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 animate-spin" />
+                    <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#d9a05b] animate-spin" />
                 )}
             </div>
 
             {/* Real-time Dropdown */}
-            {isOpen && searchTerm.trim().length > 1 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-zinc-800 shadow-2xl max-h-64 overflow-y-auto">
-                    {!loading && searchResults.length === 0 && (
-                        <div className="p-4 text-xs font-mono text-zinc-500 uppercase text-center">
-                            No entities found
-                        </div>
-                    )}
-
-                    {searchResults.map((user: SearchResult) => (
-                        <button
-                            key={user.id}
-                            onClick={() => handleSelectUser(user.id)}
-                            className="w-full text-left p-3 hover:bg-zinc-900/50 border-b border-zinc-800/50 last:border-0 flex items-center justify-between group transition-colors"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="w-6 h-6 rounded-none bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
-                                    <UserIcon className="w-3 h-3 text-zinc-400 group-hover:text-white" />
-                                </div>
-                                <span className="text-sm font-bold text-zinc-300 group-hover:text-white">
-                                    {user.name}
-                                </span>
+            <AnimatePresence>
+                {isOpen && searchTerm.trim().length > 1 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full left-4 right-4 mt-2 bg-white border border-zinc-200 shadow-xl rounded-xl max-h-64 overflow-y-auto custom-scrollbar overflow-hidden"
+                    >
+                        {!loading && searchResults.length === 0 && (
+                            <div className="p-5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest text-center">
+                                No entities found
                             </div>
-                            <span className="text-[9px] font-mono uppercase tracking-widest text-zinc-600">
-                                {user.role}
-                            </span>
-                        </button>
-                    ))}
-                </div>
-            )}
+                        )}
+
+                        {searchResults.map((user: SearchResult) => (
+                            <button
+                                key={user.id}
+                                onClick={() => handleSelectUser(user.id)}
+                                className="w-full text-left p-3 hover:bg-zinc-50 border-b border-zinc-100 last:border-0 flex items-center justify-between group transition-colors cursor-pointer"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-[#081B21] flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
+                                        <UserIcon className="w-4 h-4 text-[#d9a05b]" strokeWidth={1.5} />
+                                    </div>
+                                    <div>
+                                        <span className="block text-xs font-bold text-zinc-900 group-hover:text-[#d9a05b] transition-colors">
+                                            {user.name}
+                                        </span>
+                                        <span className="block text-[9px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5">
+                                            {user.role}
+                                        </span>
+                                    </div>
+                                </div>
+                            </button>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

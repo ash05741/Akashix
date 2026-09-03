@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, BookOpen, Settings, LogOut, Menu, X, Hexagon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
+import { GlobalSearch } from './Dashboard/GlobalSearch';
 
 export const DashboardLayout = () => {
     const { logout } = useAuth();
@@ -62,6 +63,8 @@ export const DashboardLayout = () => {
                         {workspaceName}
                     </p>
                 </div>
+
+                <GlobalSearch />
 
                 {/* Navigation Links */}
                 <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
