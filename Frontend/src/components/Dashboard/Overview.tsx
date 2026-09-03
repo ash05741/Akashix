@@ -116,7 +116,7 @@ export default function Overview() {
                     <motion.button
                         whileHover={{ y: -1 }}
                         whileTap={{ y: 1 }}
-                        onClick={() => navigate('/dashboard/workspaces')}
+                        onClick={() => navigate('/workspaces')}
                         className="flex items-center gap-2 bg-white border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-200 shadow-sm cursor-pointer"
                     >
                         Switch Realm <ChevronRight className="w-3.5 h-3.5" />
