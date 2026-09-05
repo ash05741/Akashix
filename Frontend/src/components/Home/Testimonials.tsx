@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Quote, ChevronLeft, ChevronRight } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 const testimonials = [
     { quote: 'AkashixCore transformed the way I organize my stories. The connections feature is a game changer!', name: 'Sarah J.', role: 'Fantasy Author' },
@@ -11,8 +11,17 @@ const testimonials = [
 ];
 
 export default function Testimonials() {
+    // 1. Make visibleCount responsive so mobile sees 1 card and desktop sees 3
+    const [visibleCount, setVisibleCount] = useState(3);
+
+    useEffect(() => {
+        const handleResize = () => setVisibleCount(window.innerWidth < 640 ? 1 : 3);
+        handleResize(); // Set on mount
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const [start, setStart] = useState(0);
-    const visibleCount = 3;
     const maxStart = Math.max(testimonials.length - visibleCount, 0);
 
     const prev = () => setStart((s) => Math.max(s - 1, 0));
@@ -54,21 +63,30 @@ export default function Testimonials() {
                         <ChevronLeft className="w-4 h-4 transition-transform duration-300 hover:-translate-x-0.5" />
                     </motion.button>
 
-                    <div className="overflow-hidden flex-1 py-4">
+                    <div className="overflow-hidden flex-1 py-4 touch-pan-y">
                         <motion.div
-                            className="flex"
+                            className="flex cursor-grab active:cursor-grabbing"
+                            // 2. Add touch drag support!
+                            drag="x"
+                            dragConstraints={{ left: 0, right: 0 }}
+                            dragElastic={0.2}
+                            onDragEnd={(_, { offset, velocity }) => {
+                                // Swipe left goes to next, swipe right goes to prev
+                                if (offset.x < -50 || velocity.x < -200) next();
+                                if (offset.x > 50 || velocity.x > 200) prev();
+                            }}
                             animate={{ x: `-${start * (100 / visibleCount)}%` }}
                             transition={{ type: "spring", stiffness: 200, damping: 25 }}
                         >
                             {testimonials.map((t) => (
                                 <div key={t.name} className="w-full sm:w-1/3 shrink-0 px-2.5">
-                                    <div className="group bg-white border border-zinc-200 rounded-xl p-6 h-full flex flex-col justify-between transition-all duration-500 hover:-translate-y-1.5 hover:border-amber-300 hover:shadow-[0_8px_30px_-5px_rgba(0,0,0,0.08)] cursor-default">
+                                    <div className="group bg-white border border-zinc-200 rounded-xl p-6 h-full flex flex-col justify-between transition-all duration-500 hover:-translate-y-1.5 hover:border-amber-300 hover:shadow-[0_8px_30px_-5px_rgba(0,0,0,0.08)] select-none">
                                         <div>
                                             <Quote className="w-5 h-5 text-amber-400 mb-4 transition-transform duration-500 group-hover:scale-125 group-hover:-translate-y-1 group-hover:rotate-[-10deg]" fill="currentColor" strokeWidth={0} />
                                             <p className="text-zinc-700 text-sm leading-relaxed mb-6 transition-colors duration-300 group-hover:text-zinc-900">{t.quote}</p>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-emerald-800 text-white text-xs font-semibold flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:bg-emerald-700 group-hover:shadow-md">
+                                            <div className="w-8 h-8 rounded-full bg-emerald-800 text-white text-xs font-semibold flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:bg-emerald-700 group-hover:shadow-md pointer-events-none">
                                                 {t.name.charAt(0)}
                                             </div>
                                             <div>
@@ -94,6 +112,7 @@ export default function Testimonials() {
                     </motion.button>
                 </motion.div>
 
+                {/* 3. Updated dots to match dynamic maxStart */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
