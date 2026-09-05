@@ -20,6 +20,11 @@ const apolloServer = new ApolloServer<ApolloContext>({
 });
 await apolloServer.start();
 
+// Health check endpoint to prevent Render instance sleep
+app.get('/health', (req, res) => {
+    res.status(200).send('Awake and kicking!');
+});
+
 app.use(
     '/graphql',
     cors(),
