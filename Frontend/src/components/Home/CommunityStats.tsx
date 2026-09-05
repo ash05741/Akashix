@@ -1,6 +1,6 @@
 import { Users2, BookOpenCheck, Lightbulb, HeadphonesIcon, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
-
+import { SmoothImage } from '../SmoothImage';
 const stats = [
     { icon: Users2, value: '15K+', label: 'Active Members' },
     { icon: BookOpenCheck, value: '2.5K+', label: 'Stories Shared' },
@@ -27,8 +27,14 @@ export default function CommunityStats() {
                             whileInView={{ scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ duration: 1.5, ease: "easeOut" }}
-                            className="absolute inset-0 bg-[url('https://images.alphacoders.com/856/thumb-1920-856977.jpg')] bg-cover bg-right opacity-50"
-                        />
+                            className="absolute inset-0 opacity-50"
+                        >
+                            <SmoothImage
+                                src="https://images.alphacoders.com/856/thumb-1920-856977.jpg"
+                                alt="Atmospheric Background"
+                                className="w-full h-full"
+                            />
+                        </motion.div>
                     </div>
 
                     <div className="absolute inset-0 bg-gradient-to-r from-[#081B21] via-[#081B21]/70 via-35% to-[#081B21]/0 to-90%"></div>

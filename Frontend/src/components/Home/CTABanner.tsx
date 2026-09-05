@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
-
+import { SmoothImage } from '../SmoothImage';
 export default function CTABanner() {
     return (
         <section className="bg-[#FAF6ED] pb-24">
@@ -19,9 +19,14 @@ export default function CTABanner() {
                             whileInView={{ scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ duration: 1.5, ease: "easeOut" }}
-                            className="absolute inset-0 bg-cover bg-center opacity-80"
-                            style={{ backgroundImage: "url('https://images.pexels.com/photos/31566137/pexels-photo-31566137.jpeg')" }}
-                        ></motion.div>
+                            className="absolute inset-0 opacity-80"
+                        >
+                            <SmoothImage
+                                src="https://images.pexels.com/photos/31566137/pexels-photo-31566137.jpeg"
+                                alt="Hero Background"
+                                className="w-full h-full"
+                            />
+                        </motion.div>
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#081B21]/50 to-[#081B21]"></div>
                         <div className="absolute inset-0 bg-gradient-to-t from-[#081B21] via-transparent to-transparent md:hidden"></div>
                     </div>

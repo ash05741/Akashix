@@ -3,12 +3,13 @@ import { useForm } from 'react-hook-form';
 import { useMutation } from '@apollo/client/react';
 import { Loader2, Sparkles, User, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Link2 } from 'lucide-react';
 import { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { FcGoogle } from 'react-icons/fc';
 import { FaDiscord, FaGithub } from 'react-icons/fa';
 
 import { useAuth } from '../context/AuthContext';
 import { REGISTER_MUTATION } from '../graphql/auth';
+import { SmoothImage } from './SmoothImage'; // Adjust path based on your folder structure
 
 interface RegisterFormInputs {
     name: string;
@@ -250,11 +251,12 @@ export const Register = () => {
             {/* RIGHT SIDE: Unique Epic Castle Visual for Register */}
             <div className="hidden lg:block lg:w-[52%] xl:w-[58%] relative overflow-hidden bg-[#081B21]">
 
-                {/* Grand Fantasy Castle Image (Unique to Register) */}
-                <div
-                    className="absolute inset-0 bg-cover bg-center scale-105"
-                    style={{ backgroundImage: "url('https://images6.alphacoders.com/135/thumb-1920-1351414.png')" }}
-                ></div>
+                {/* Smoothed Background Image */}
+                <SmoothImage
+                    src="https://images6.alphacoders.com/135/thumb-1920-1351414.png"
+                    alt="Fantasy Castle"
+                    className="absolute inset-0 w-full h-full scale-105 z-0"
+                />
 
                 {/* Ultra-Smooth Seamless Fade into #FAF6ED Panel */}
                 <div className="absolute inset-y-0 left-0 w-80 bg-gradient-to-r from-[#FAF6ED] via-[#FAF6ED]/70 via-40% to-transparent pointer-events-none z-10"></div>

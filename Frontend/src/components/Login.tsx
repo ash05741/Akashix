@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { FcGoogle } from 'react-icons/fc';
 import { FaDiscord, FaGithub } from 'react-icons/fa';
-
+import { SmoothImage } from './SmoothImage';
 import { useAuth } from '../context/AuthContext';
 import { LOGIN_MUTATION } from '../graphql/auth';
 
@@ -225,10 +225,11 @@ export const Login = () => {
             <div className="hidden lg:block lg:w-[52%] xl:w-[58%] relative overflow-hidden bg-[#081B21]">
 
                 {/* Background Image */}
-                <div
-                    className="absolute inset-0 bg-cover bg-center scale-105"
-                    style={{ backgroundImage: "url('https://images2.alphacoders.com/134/thumb-1920-1349521.png')" }}
-                ></div>
+                <SmoothImage
+                    src="https://images2.alphacoders.com/134/thumb-1920-1349521.png"
+                    alt="Atmospheric Background"
+                    className="absolute inset-0 w-full h-full scale-105 z-0"
+                />
 
                 {/* --- THE SEAMLESS FADE FIX --- */}
                 {/* Multi-step gradient overlay that gently transitions the image into the solid #FAF6ED left panel */}

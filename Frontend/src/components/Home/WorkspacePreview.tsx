@@ -4,6 +4,7 @@ import {
     ChevronDown, Search, Plus
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { SmoothImage } from '../SmoothImage';
 
 const navItems = [
     { icon: LayoutDashboard, label: 'Overview', active: true },
@@ -144,7 +145,11 @@ export default function WorkspacePreview() {
                                                     <div className="flex items-center gap-2 text-zinc-700 truncate pr-2 transition-transform duration-300 group-hover:translate-x-1">
                                                         {i === 0 ? (
                                                             <div className="w-5 h-5 rounded-full bg-zinc-200 overflow-hidden shrink-0 transition-transform duration-300 group-hover:scale-110">
-                                                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop" alt="" className="w-full h-full object-cover" />
+                                                                <SmoothImage
+                                                                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop"
+                                                                    alt="User Avatar"
+                                                                    className="w-full h-full"
+                                                                />
                                                             </div>
                                                         ) : (
                                                             <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-[10px] shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:bg-emerald-100 group-hover:text-emerald-700">
