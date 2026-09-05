@@ -43,17 +43,16 @@ export default function Navbar() {
                 </nav>
 
                 {/* Desktop Auth */}
-                {/* Updated Mobile Auth Buttons */}
-                <div className="flex flex-col gap-3 pt-4 border-t border-white/10 mt-2 px-2 pb-2">
+                <div className="hidden lg:flex items-center gap-3">
                     <Link
                         to="/login"
-                        className="w-full text-center text-sm font-semibold text-zinc-300 py-3 rounded-lg border border-zinc-700 transition-all duration-300 hover:bg-white/10 hover:text-white active:scale-95"
+                        className="text-md font-bold text-zinc-300 hover:text-white transition-all duration-300 px-3 py-2 hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
                     >
                         Log in
                     </Link>
                     <Link
                         to="/register"
-                        className="w-full bg-amber-400 text-[#0B1210] text-sm font-semibold py-3 rounded-lg text-center transition-all duration-300 hover:bg-amber-300 active:scale-95 shadow-md"
+                        className="bg-amber-400 hover:bg-amber-300 text-[#0B1210] text-md font-semibold px-5 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_-5px_rgba(251,191,36,0.6)] active:scale-95"
                     >
                         Get Started Free
                     </Link>
@@ -87,11 +86,16 @@ export default function Navbar() {
                                     {link.label}
                                 </span>
                             ))}
-                            <div className="flex flex-col gap-2 pt-2 border-t border-white/10 mt-2">
-                                <Link to="/login" className="text-sm text-zinc-300 py-2 transition-all duration-300 hover:text-white hover:translate-x-2">Log in</Link>
+                            <div className="flex flex-col gap-2.5 pt-3 border-t border-white/10 mt-2">
+                                <Link
+                                    to="/login"
+                                    className="w-full text-center text-sm font-semibold text-white bg-white/10 hover:bg-white/15 py-2.5 rounded-lg transition-all duration-300 active:scale-95"
+                                >
+                                    Log in
+                                </Link>
                                 <Link
                                     to="/register"
-                                    className="bg-amber-400 text-[#0B1210] text-sm font-semibold px-5 py-2.5 rounded-lg text-center transition-all duration-300 hover:bg-amber-300 active:scale-95"
+                                    className="w-full bg-amber-400 text-[#0B1210] text-sm font-semibold py-2.5 rounded-lg text-center transition-all duration-300 hover:bg-amber-300 active:scale-95 shadow-md"
                                 >
                                     Get Started Free
                                 </Link>
