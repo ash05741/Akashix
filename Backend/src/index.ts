@@ -10,6 +10,8 @@ import { typeDefs } from './graphql/typeDefs.js';
 import { resolvers, ApolloContext } from './graphql/resolvers.js';
 
 const app = express();
+const PORT = process.env.PORT || 4000;
+
 await connectDB();
 
 const apolloServer = new ApolloServer<ApolloContext>({
@@ -27,10 +29,10 @@ app.use(
             // 1. Grab the Authorization header
             const authHeader = req.headers.authorization || '';
 
-            // 2. NEW: Grab the workspace ID from custom headers (Express lowercases headers automatically)
+            // 2. Grab the workspace ID from custom headers
             const workspaceId = req.headers['x-workspace-id'] as string | undefined;
 
-            // 3. If there's no token, return context with only workspaceId (Login/Register still works)
+            // 3. If there's no token, return context with only workspaceId
             if (!authHeader.startsWith('Bearer ')) {
                 return { workspaceId };
             }
@@ -40,14 +42,12 @@ app.use(
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
 
-                // 5. Combine the secure identity from the JWT with the workspace route from the header
                 return {
                     userId: decoded.userId,
                     role: decoded.role,
-                    workspaceId: workspaceId, // Now injected dynamically per-request!
+                    workspaceId: workspaceId,
                 };
             } catch (err) {
-                // If the token is expired or fake, reject auth but keep workspace context just in case
                 console.warn('⚠️ Invalid or expired token rejected.');
                 return { workspaceId };
             }
@@ -55,6 +55,6 @@ app.use(
     })
 );
 
-app.listen(4000, () => {
-    console.log('🚀 AkashixCore Server ready at http://localhost:4000/graphql');
+app.listen(PORT, () => {
+    console.log(`🚀 AkashixCore Server ready on port ${PORT}`);
 });
