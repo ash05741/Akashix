@@ -11,6 +11,7 @@ const navLinks = [
     { label: 'Changelog', hasDropdown: false },
 ];
 
+
 export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
