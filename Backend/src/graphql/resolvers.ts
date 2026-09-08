@@ -216,6 +216,11 @@ export const resolvers = {
             return true;
         },
 
+        updateCharacter: async (_: any, { id, ...updates }: any) => {
+            // { new: true } guarantees Apollo gets the fresh data back to update the cache
+            return await Character.findByIdAndUpdate(id, updates, { new: true });
+        },
+
         // --- LORE MANAGEMENT ---
         createLore: async (_parent: any, args: any, context: ApolloContext) => {
             if (!context.workspaceId) throw new Error('Unauthorized: Missing workspace ID');
@@ -238,6 +243,10 @@ export const resolvers = {
             }
 
             return true;
+        },
+
+        updateLore: async (_: any, { id, ...updates }: any) => {
+            return await Lore.findByIdAndUpdate(id, updates, { new: true });
         },
 
         // --- AI TOOLS ---
