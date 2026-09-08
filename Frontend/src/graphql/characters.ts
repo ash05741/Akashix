@@ -34,3 +34,14 @@ export const DELETE_CHARACTER = gql`
         deleteCharacter(id: $id)
     }
 `;
+
+export const UPDATE_CHARACTER = gql`
+    mutation UpdateCharacter($id: ID!, $name: String, $role: String, $description: String) {
+        updateCharacter(id: $id, name: $name, role: $role, description: $description) {
+            id
+            name
+            role
+            # You can add stats or relatedLore here later if you want the cache to update those too
+        }
+    }
+`;
