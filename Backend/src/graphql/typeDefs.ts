@@ -87,11 +87,13 @@ export const typeDefs = `#graphql
     # Existing Characters
     createCharacter(name: String!, role: String!, has3DModel: Boolean, stats: StatsInput, relatedLore: [ID!]): Character!
     deleteCharacter(id: ID!): Boolean!
+    updateCharacter(id: ID!, name: String, role: String, description: String, image: String): Character
 
     # Existing Lore
     createLore(title: String!, category: String!, summary: String, content: String): Lore!
     deleteLore(id: ID!): Boolean!
     enhanceLore(text: String!): String!
+    updateLore(id: ID!, title: String, content: String, category: String): Lore
 
     # Auth Mutations
     register(name: String!, email: String!, password: String!): AuthPayload
