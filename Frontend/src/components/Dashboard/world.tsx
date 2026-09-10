@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { gql } from '@apollo/client';
-import { BookOpen, Map, Shield, Clock, Plus, Loader2, X, Trash2, AlertTriangle, Sparkles } from 'lucide-react';
+import { BookOpen, Map, Shield, Clock, Plus, Loader2, X, Trash2, AlertTriangle, Sparkles, Edit2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // 1. Queries and Mutations
@@ -41,6 +41,18 @@ const ENHANCE_LORE = gql`
   }
 `;
 
+const UPDATE_LORE = gql`
+    mutation UpdateLore($id: ID!, $title: String, $summary: String, $content: String, $category: String) {
+        updateLore(id: $id, title: $title, summary: $summary, content: $content, category: $category) {
+            id
+            title
+            summary
+            content
+            category
+        }
+    }
+`;
+
 // 2. TypeScript Interfaces
 interface LoreItem {
     id: string;
@@ -58,6 +70,16 @@ interface EnhanceLoreData {
     enhanceLore: string;
 }
 
+interface UpdateLoreResponse {
+    updateLore: {
+        id: string;
+        title: string;
+        summary: string;
+        content: string;
+        category: string;
+    }
+}
+
 const categoryIcons: Record<string, React.ReactNode> = {
     Location: <Map className="w-5 h-5 text-[#d9a05b]" strokeWidth={1.5} />,
     Faction: <Shield className="w-5 h-5 text-[#d9a05b]" strokeWidth={1.5} />,
@@ -70,13 +92,20 @@ export default function World() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // View Lore State
+    // View & Edit Lore State
     const [selectedLore, setSelectedLore] = useState<LoreItem | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editFormData, setEditFormData] = useState({
+        title: '',
+        category: 'Location',
+        summary: '',
+        content: ''
+    });
 
     // Delete Modal State
     const [loreToDelete, setLoreToDelete] = useState<{ id: string; title: string } | null>(null);
 
-    // Form State
+    // Create Form State
     const [formData, setFormData] = useState({
         title: '',
         category: 'Location',
@@ -100,6 +129,24 @@ export default function World() {
         onError: (err) => {
             console.error("Mutation error:", err.message);
             alert(`Failed to create lore: ${err.message}`);
+        }
+    });
+
+    const [updateLore, { loading: isUpdating }] = useMutation<UpdateLoreResponse>(UPDATE_LORE, {
+        onCompleted: (data) => {
+            setIsEditing(false);
+            // Update the currently viewed lore without closing the modal
+            setSelectedLore(prev => prev ? {
+                ...prev,
+                title: data.updateLore.title,
+                category: data.updateLore.category,
+                summary: data.updateLore.summary,
+                content: data.updateLore.content
+            } : null);
+        },
+        onError: (err) => {
+            console.error("Update error:", err.message);
+            alert(`Failed to update lore: ${err.message}`);
         }
     });
 
@@ -134,6 +181,31 @@ export default function World() {
     const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();
         createLore({ variables: formData });
+    };
+
+    const handleUpdate = async () => {
+        if (!selectedLore || !editFormData.title.trim()) return;
+
+        await updateLore({
+            variables: {
+                id: selectedLore.id,
+                title: editFormData.title.trim(),
+                category: editFormData.category,
+                summary: editFormData.summary.trim(),
+                content: editFormData.content.trim()
+            }
+        });
+    };
+
+    const openViewModal = (lore: LoreItem) => {
+        setSelectedLore(lore);
+        setEditFormData({
+            title: lore.title,
+            category: lore.category,
+            summary: lore.summary || '',
+            content: lore.content || ''
+        });
+        setIsEditing(false);
     };
 
     const handleDeleteClick = (e: React.MouseEvent, id: string, title: string) => {
@@ -237,7 +309,7 @@ export default function World() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.3, delay: index * 0.05 }}
                             whileHover={{ y: -3 }}
-                            onClick={() => setSelectedLore(lore)}
+                            onClick={() => openViewModal(lore)}
                             className="rounded-3xl border border-zinc-200 bg-white p-6 md:p-8 hover:border-amber-400/60 transition-all duration-300 shadow-sm group cursor-pointer hover:shadow-md relative flex flex-col h-full"
                         >
                             <div className="flex items-start justify-between mb-5">
@@ -278,7 +350,7 @@ export default function World() {
                 </div>
             )}
 
-            {/* View Lore Modal */}
+            {/* View / Edit Lore Modal */}
             <AnimatePresence>
                 {selectedLore && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedLore(null)}>
@@ -292,16 +364,27 @@ export default function World() {
                             <div className="flex justify-between items-center p-6 border-b border-zinc-100 bg-zinc-50 shrink-0">
                                 <div className="flex items-center gap-4">
                                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#081B21] shadow-inner">
-                                        <span className="scale-125">{categoryIcons[selectedLore.category] || categoryIcons.Default}</span>
+                                        <span className="scale-125">{categoryIcons[isEditing ? editFormData.category : selectedLore.category] || categoryIcons.Default}</span>
                                     </div>
                                     <div>
-                                        <h2 className="font-serif text-2xl font-bold text-zinc-900 mb-1">{selectedLore.title}</h2>
+                                        <h2 className="font-serif text-2xl font-bold text-zinc-900 mb-1">
+                                            {isEditing ? "Edit Lore Entry" : selectedLore.title}
+                                        </h2>
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 border border-zinc-200 bg-white px-2.5 py-0.5 rounded-lg shadow-xs">
-                                            {selectedLore.category}
+                                            {isEditing ? "Database Edit" : selectedLore.category}
                                         </span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
+                                    {!isEditing && (
+                                        <button
+                                            onClick={() => setIsEditing(true)}
+                                            className="p-2 text-zinc-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors cursor-pointer"
+                                            title="Edit Lore"
+                                        >
+                                            <Edit2 className="w-5 h-5" />
+                                        </button>
+                                    )}
                                     <button
                                         onClick={(e) => handleDeleteClick(e, selectedLore.id, selectedLore.title)}
                                         className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
@@ -319,25 +402,84 @@ export default function World() {
                             </div>
 
                             <div className="overflow-y-auto p-6 md:p-8 flex-1 custom-scrollbar bg-[#FAF6ED]/30 space-y-6">
-                                {selectedLore.summary && (
-                                    <div className="p-5 bg-white border border-zinc-200 shadow-sm rounded-2xl">
-                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3 flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-[#d9a05b]"></div>
-                                            Overview
-                                        </h4>
-                                        <p className="text-zinc-700 text-sm leading-relaxed">{selectedLore.summary}</p>
+                                {isEditing ? (
+                                    <div className="space-y-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                            <div className="space-y-1.5">
+                                                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Title</label>
+                                                <input
+                                                    type="text"
+                                                    value={editFormData.title}
+                                                    onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                                                    className="block w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-zinc-900 focus:border-[#d9a05b] focus:outline-none focus:ring-1 focus:ring-[#d9a05b] shadow-sm transition-all text-sm"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Category</label>
+                                                <select
+                                                    value={editFormData.category}
+                                                    onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
+                                                    className="block w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-zinc-900 focus:border-[#d9a05b] focus:outline-none focus:ring-1 focus:ring-[#d9a05b] shadow-sm transition-all text-sm cursor-pointer"
+                                                >
+                                                    <option value="Location">Location</option>
+                                                    <option value="Faction">Faction</option>
+                                                    <option value="History">History</option>
+                                                    <option value="Artifact">Artifact</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Short Summary</label>
+                                            <textarea
+                                                maxLength={150}
+                                                value={editFormData.summary}
+                                                onChange={(e) => setEditFormData({ ...editFormData, summary: e.target.value })}
+                                                className="block w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-zinc-900 focus:border-[#d9a05b] focus:outline-none focus:ring-1 focus:ring-[#d9a05b] resize-none custom-scrollbar shadow-sm transition-all text-sm h-20"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Full Lore / Story</label>
+                                            <textarea
+                                                value={editFormData.content}
+                                                onChange={(e) => setEditFormData({ ...editFormData, content: e.target.value })}
+                                                className="block w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-zinc-900 focus:border-[#d9a05b] focus:outline-none focus:ring-1 focus:ring-[#d9a05b] text-sm resize-y min-h-[200px] shadow-sm custom-scrollbar"
+                                            />
+                                        </div>
+                                        <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200/50">
+                                            <button onClick={() => setIsEditing(false)} className="rounded-xl px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer">
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleUpdate}
+                                                disabled={isUpdating || !editFormData.title.trim()}
+                                                className="flex items-center justify-center min-w-[120px] rounded-xl bg-amber-400 hover:bg-amber-500 px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-[#0B1210] transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+                                            >
+                                                {isUpdating ? <Loader2 className="w-4 h-4 animate-spin text-[#0B1210]" /> : 'Save Changes'}
+                                            </button>
+                                        </div>
                                     </div>
+                                ) : (
+                                    <>
+                                        {selectedLore.summary && (
+                                            <div className="p-5 bg-white border border-zinc-200 shadow-sm rounded-2xl">
+                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3 flex items-center gap-2">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#d9a05b]"></div>
+                                                    Overview
+                                                </h4>
+                                                <p className="text-zinc-700 text-sm leading-relaxed">{selectedLore.summary}</p>
+                                            </div>
+                                        )}
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4 border-b border-zinc-100 pb-3 flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#081B21]"></div>
+                                                Full Database Entry
+                                            </h4>
+                                            <div className="text-zinc-800 leading-loose whitespace-pre-wrap text-[15px] font-medium">
+                                                {selectedLore.content || <span className="italic text-zinc-400">No detailed history recorded for this entity.</span>}
+                                            </div>
+                                        </div>
+                                    </>
                                 )}
-
-                                <div>
-                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4 border-b border-zinc-100 pb-3 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#081B21]"></div>
-                                        Full Database Entry
-                                    </h4>
-                                    <div className="text-zinc-800 leading-loose whitespace-pre-wrap text-[15px] font-medium">
-                                        {selectedLore.content || <span className="italic text-zinc-400">No detailed history recorded for this entity.</span>}
-                                    </div>
-                                </div>
                             </div>
                         </motion.div>
                     </div>
