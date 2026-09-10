@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { gql } from '@apollo/client';
-import { Plus, Loader2, User, X, Trash2, AlertTriangle, Link as LinkIcon } from 'lucide-react';
-import { GET_CHARACTERS, CREATE_CHARACTER, DELETE_CHARACTER } from '../../graphql/characters';
+import { Plus, Loader2, User, X, Trash2, AlertTriangle, Link as LinkIcon, Edit2 } from 'lucide-react';
+import { GET_CHARACTERS, CREATE_CHARACTER, DELETE_CHARACTER, UPDATE_CHARACTER } from '../../graphql/characters';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const GET_ALL_LORE = gql`
@@ -33,6 +33,14 @@ interface Character {
     relatedLore?: LoreReference[];
 }
 
+interface UpdateCharacterResponse {
+    updateCharacter: {
+        id: string;
+        name: string;
+        role?: string;
+    }
+}
+
 interface GetCharactersResponse {
     getCharacters: Character[];
 }
@@ -45,6 +53,10 @@ export const Characters = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedChar, setSelectedChar] = useState<Character | null>(null);
     const [charToDelete, setCharToDelete] = useState<{ id: string; name: string } | null>(null);
+
+    // Edit State
+    const [isEditing, setIsEditing] = useState(false);
+    const [editFormData, setEditFormData] = useState({ name: '', role: '' });
 
     const [newCharName, setNewCharName] = useState('');
     const [newCharRole, setNewCharRole] = useState('');
@@ -66,6 +78,22 @@ export const Characters = () => {
         onError: (err) => {
             console.error("Mutation error:", err.message);
             alert(`Failed to create character: ${err.message}`);
+        }
+    });
+
+    const [updateCharacter, { loading: updating }] = useMutation<UpdateCharacterResponse>(UPDATE_CHARACTER, {
+        onCompleted: (data) => {
+            setIsEditing(false);
+            // Update local state so the view modal reflects changes instantly without closing
+            setSelectedChar(prev => prev ? {
+                ...prev,
+                name: data.updateCharacter.name,
+                role: data.updateCharacter.role
+            } : null);
+        },
+        onError: (err) => {
+            console.error("Update error:", err.message);
+            alert(`Failed to update character: ${err.message}`);
         }
     });
 
@@ -100,6 +128,18 @@ export const Characters = () => {
         });
     };
 
+    const handleUpdate = async () => {
+        if (!selectedChar || !editFormData.name.trim()) return;
+
+        await updateCharacter({
+            variables: {
+                id: selectedChar.id,
+                name: editFormData.name.trim(),
+                role: editFormData.role.trim()
+            }
+        });
+    };
+
     const toggleLoreSelection = (id: string) => {
         setSelectedLoreIds(prev =>
             prev.includes(id) ? prev.filter(loreId => loreId !== id) : [...prev, id]
@@ -114,6 +154,12 @@ export const Characters = () => {
     const confirmDelete = () => {
         if (!charToDelete) return;
         deleteCharacter({ variables: { id: charToDelete.id } });
+    };
+
+    const openViewModal = (char: Character) => {
+        setSelectedChar(char);
+        setEditFormData({ name: char.name, role: char.role || '' });
+        setIsEditing(false);
     };
 
     if (charsLoading) {
@@ -175,7 +221,7 @@ export const Characters = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.3, delay: index * 0.05 }}
                             whileHover={{ y: -3 }}
-                            onClick={() => setSelectedChar(char)}
+                            onClick={() => openViewModal(char)}
                             className="rounded-3xl border border-zinc-200 bg-white p-6 md:p-8 hover:border-amber-400/60 transition-all duration-300 shadow-sm group cursor-pointer hover:shadow-md flex flex-col h-full"
                         >
                             {/* Card Header */}
@@ -241,7 +287,7 @@ export const Characters = () => {
                 </div>
             )}
 
-            {/* VIEW CHARACTER MODAL */}
+            {/* VIEW/EDIT CHARACTER MODAL */}
             <AnimatePresence>
                 {selectedChar && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedChar(null)}>
@@ -258,11 +304,22 @@ export const Characters = () => {
                                         <User className="h-6 w-6 text-[#d9a05b]" strokeWidth={1.5} />
                                     </div>
                                     <div>
-                                        <h2 className="font-serif text-xl font-bold text-zinc-900 mb-1 tracking-tight">{selectedChar.name}</h2>
+                                        <h2 className="font-serif text-xl font-bold text-zinc-900 mb-1 tracking-tight">
+                                            {isEditing ? "Edit Entity" : selectedChar.name}
+                                        </h2>
                                         <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest border border-zinc-200 bg-white px-2.5 py-0.5 rounded-lg shadow-xs">Entity Profile</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
+                                    {!isEditing && (
+                                        <button
+                                            onClick={() => setIsEditing(true)}
+                                            className="p-2 text-zinc-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors cursor-pointer"
+                                            title="Edit Character"
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
+                                    )}
                                     <button
                                         onClick={(e) => handleDeleteClick(e, selectedChar.id, selectedChar.name)}
                                         className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
@@ -278,60 +335,97 @@ export const Characters = () => {
                                 </div>
                             </div>
 
-                            <div className="p-6 overflow-y-auto custom-scrollbar space-y-6 bg-[#FAF6ED]/30">
-                                <div>
-                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#d9a05b]"></div>
-                                        About / Role
-                                    </h4>
-                                    <div className="bg-white border border-zinc-200 shadow-sm rounded-2xl p-5">
-                                        <p className="text-zinc-700 leading-relaxed whitespace-pre-wrap text-sm">
-                                            {selectedChar.role || <span className="italic text-zinc-400">No description provided.</span>}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#d9a05b]"></div>
-                                        World Connections
-                                    </h4>
-                                    {selectedChar.relatedLore && selectedChar.relatedLore.length > 0 ? (
-                                        <div className="flex flex-wrap gap-2">
-                                            {selectedChar.relatedLore.map(lore => (
-                                                <span key={lore.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl text-[10px] font-bold tracking-widest uppercase text-amber-800 shadow-xs">
-                                                    <LinkIcon className="w-3.5 h-3.5 text-amber-500" />
-                                                    {lore.title}
-                                                </span>
-                                            ))}
+                            <div className="p-6 overflow-y-auto custom-scrollbar bg-[#FAF6ED]/30 flex-1">
+                                {isEditing ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Entity Name</label>
+                                            <input
+                                                type="text"
+                                                value={editFormData.name}
+                                                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                                                className="block w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-zinc-900 focus:border-[#d9a05b] focus:outline-none focus:ring-1 focus:ring-[#d9a05b] text-sm shadow-sm transition-all"
+                                            />
                                         </div>
-                                    ) : (
-                                        <p className="text-xs text-zinc-500 italic bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
-                                            No lore connections established.
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#d9a05b]"></div>
-                                        Attributes Reference
-                                    </h4>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex flex-col items-center justify-center">
-                                            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">STR</span>
-                                            <span className="font-serif text-xl text-zinc-900 font-bold">{selectedChar.stats.strength}</span>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">About / Role</label>
+                                            <textarea
+                                                rows={4}
+                                                value={editFormData.role}
+                                                onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
+                                                className="block w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-zinc-900 focus:border-[#d9a05b] focus:outline-none focus:ring-1 focus:ring-[#d9a05b] resize-none text-sm custom-scrollbar shadow-sm transition-all"
+                                            />
                                         </div>
-                                        <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex flex-col items-center justify-center">
-                                            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">AGI</span>
-                                            <span className="font-serif text-xl text-zinc-900 font-bold">{selectedChar.stats.agility}</span>
-                                        </div>
-                                        <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex flex-col items-center justify-center">
-                                            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">INT</span>
-                                            <span className="font-serif text-xl text-zinc-900 font-bold">{selectedChar.stats.intelligence}</span>
+                                        <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-zinc-200/50">
+                                            <button onClick={() => setIsEditing(false)} className="rounded-xl px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer">
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleUpdate}
+                                                disabled={updating || !editFormData.name.trim()}
+                                                className="flex items-center justify-center min-w-[120px] rounded-xl bg-amber-400 hover:bg-amber-500 px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-[#0B1210] transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+                                            >
+                                                {updating ? <Loader2 className="w-4 h-4 animate-spin text-[#0B1210]" /> : 'Save Changes'}
+                                            </button>
                                         </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#d9a05b]"></div>
+                                                About / Role
+                                            </h4>
+                                            <div className="bg-white border border-zinc-200 shadow-sm rounded-2xl p-5">
+                                                <p className="text-zinc-700 leading-relaxed whitespace-pre-wrap text-sm">
+                                                    {selectedChar.role || <span className="italic text-zinc-400">No description provided.</span>}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#d9a05b]"></div>
+                                                World Connections
+                                            </h4>
+                                            {selectedChar.relatedLore && selectedChar.relatedLore.length > 0 ? (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedChar.relatedLore.map(lore => (
+                                                        <span key={lore.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl text-[10px] font-bold tracking-widest uppercase text-amber-800 shadow-xs">
+                                                            <LinkIcon className="w-3.5 h-3.5 text-amber-500" />
+                                                            {lore.title}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-zinc-500 italic bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm">
+                                                    No lore connections established.
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#d9a05b]"></div>
+                                                Attributes Reference
+                                            </h4>
+                                            <div className="grid grid-cols-3 gap-3">
+                                                <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex flex-col items-center justify-center">
+                                                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">STR</span>
+                                                    <span className="font-serif text-xl text-zinc-900 font-bold">{selectedChar.stats.strength}</span>
+                                                </div>
+                                                <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex flex-col items-center justify-center">
+                                                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">AGI</span>
+                                                    <span className="font-serif text-xl text-zinc-900 font-bold">{selectedChar.stats.agility}</span>
+                                                </div>
+                                                <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex flex-col items-center justify-center">
+                                                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">INT</span>
+                                                    <span className="font-serif text-xl text-zinc-900 font-bold">{selectedChar.stats.intelligence}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     </div>
