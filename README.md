@@ -38,6 +38,7 @@ https://akashix-frontend.vercel.app/
 ```bash
 git clone [https://github.com/ash05741/Akashix.git](https://github.com/ash05741/Akashix.git)
 cd Akashix
+```
 
 **2. Start Backend**
 ```bash
