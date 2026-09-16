@@ -37,9 +37,11 @@ export default function Testimonials() {
                     transition={{ duration: 0.6, ease: "easeOut" }}
                     className="text-center mb-12"
                 >
-                    <span className="text-amber-600 text-xs font-semibold tracking-widest uppercase">
+                    {/* TOP BADGE: font-mono */}
+                    <span className="font-mono text-amber-600 text-xs font-semibold tracking-widest uppercase">
                         Loved by writers
                     </span>
+                    {/* MAIN HEADING: font-serif */}
                     <h3 className="font-serif text-3xl font-semibold text-zinc-900 mt-3">
                         See what creators are saying
                     </h3>
@@ -83,15 +85,19 @@ export default function Testimonials() {
                                     <div className="group bg-white border border-zinc-200 rounded-xl p-6 h-full flex flex-col justify-between transition-all duration-500 hover:-translate-y-1.5 hover:border-amber-300 hover:shadow-[0_8px_30px_-5px_rgba(0,0,0,0.08)] select-none">
                                         <div>
                                             <Quote className="w-5 h-5 text-amber-400 mb-4 transition-transform duration-500 group-hover:scale-125 group-hover:-translate-y-1 group-hover:rotate-[-10deg]" fill="currentColor" strokeWidth={0} />
-                                            <p className="text-zinc-700 text-sm leading-relaxed mb-6 transition-colors duration-300 group-hover:text-zinc-900">{t.quote}</p>
+                                            {/* THE QUOTE: font-sans for clean readability */}
+                                            <p className="font-sans text-zinc-700 text-sm leading-relaxed mb-6 transition-colors duration-300 group-hover:text-zinc-900">{t.quote}</p>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-emerald-800 text-white text-xs font-semibold flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:bg-emerald-700 group-hover:shadow-md pointer-events-none">
+                                            {/* AVATAR INITIAL: font-sans */}
+                                            <div className="font-sans w-8 h-8 rounded-full bg-emerald-800 text-white text-xs font-semibold flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:bg-emerald-700 group-hover:shadow-md pointer-events-none">
                                                 {t.name.charAt(0)}
                                             </div>
                                             <div>
-                                                <div className="text-sm font-medium text-zinc-900 transition-transform duration-300 group-hover:translate-x-0.5">{t.name}</div>
-                                                <div className="text-xs text-zinc-500 transition-colors duration-300 group-hover:text-amber-600">{t.role}</div>
+                                                {/* AUTHOR NAME: font-sans */}
+                                                <div className="font-sans text-sm font-medium text-zinc-900 transition-transform duration-300 group-hover:translate-x-0.5">{t.name}</div>
+                                                {/* AUTHOR ROLE: font-mono, added uppercase & tracking-wide */}
+                                                <div className="font-mono uppercase tracking-wide text-[10px] text-zinc-500 transition-colors duration-300 group-hover:text-amber-600 mt-0.5">{t.role}</div>
                                             </div>
                                         </div>
                                     </div>

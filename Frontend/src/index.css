@@ -1,10 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap');
 @import 'tailwindcss';
 
+/* For your standard paragraphs, buttons, and checklists */
+.font-sans {
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* For your massive headings */
 .font-serif {
     font-family: 'Playfair Display', serif !important;
 }
 
-.font-roboto {
-    font-family: 'Roboto', sans-serif !important;
+/* For your technical badges and numbers */
+.font-mono {
+    font-family: 'Space Mono', monospace !important;
 }

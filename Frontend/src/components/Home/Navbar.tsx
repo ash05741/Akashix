@@ -11,7 +11,6 @@ const navLinks = [
     { label: 'Changelog', hasDropdown: false },
 ];
 
-
 export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -22,17 +21,19 @@ export default function Navbar() {
                 {/* Logo */}
                 <Link to="/" className="group flex items-center gap-2">
                     <Sparkles className="w-8 h-8 text-amber-400 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" strokeWidth={1.75} />
-                    <span className="font-roboto font-semibold tracking-tight text-white text-xl transition-colors duration-300">
-                        AKASHIX<span className="text-amber-400 transition-colors duration-300 group-hover:text-amber-300">CORE</span>
+                    {/* LOGO: font-serif for AKASHIX, font-mono for CORE */}
+                    <span className="font-serif font-semibold tracking-tight text-white text-xl transition-colors duration-300">
+                        AKASHIX<span className="font-mono text-amber-400 transition-colors duration-300 group-hover:text-amber-300">CORE</span>
                     </span>
                 </Link>
 
                 {/* Desktop Nav */}
-                <nav className="font-roboto hidden lg:flex items-center gap-10">
+                <nav className="font-sans hidden lg:flex items-center gap-10">
                     {navLinks.map((link) => (
                         <button
                             key={link.label}
-                            className="group flex items-center gap-1 text-md text-zinc-300 hover:text-white transition-colors duration-300 cursor-pointer"
+                            /* NAV LINKS: font-sans for clean UI legibility */
+                            className="font-sans group flex items-center gap-1 text-md text-zinc-300 hover:text-white transition-colors duration-300 cursor-pointer"
                         >
                             <span className="relative">
                                 {link.label}
@@ -47,13 +48,15 @@ export default function Navbar() {
                 <div className="hidden lg:flex items-center gap-3">
                     <Link
                         to="/login"
-                        className="text-md font-bold text-zinc-300 hover:text-white transition-all duration-300 px-3 py-2 hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                        /* LOGIN BUTTON: font-sans */
+                        className="font-sans text-md font-bold text-zinc-300 hover:text-white transition-all duration-300 px-3 py-2 hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
                     >
                         Log in
                     </Link>
                     <Link
                         to="/register"
-                        className="bg-amber-400 hover:bg-amber-300 text-[#0B1210] text-md font-semibold px-5 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_-5px_rgba(251,191,36,0.6)] active:scale-95"
+                        /* REGISTER BUTTON: font-sans */
+                        className="font-sans bg-amber-400 hover:bg-amber-300 text-[#0B1210] text-md font-semibold px-5 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_-5px_rgba(251,191,36,0.6)] active:scale-95"
                     >
                         Get Started Free
                     </Link>
@@ -71,7 +74,7 @@ export default function Navbar() {
                 </button>
             </div>
 
-            {/* Mobile Menu (Animated smoothly via AnimatePresence) */}
+            {/* Mobile Menu */}
             <AnimatePresence>
                 {mobileOpen && (
                     <motion.div
@@ -83,20 +86,23 @@ export default function Navbar() {
                     >
                         <div className="px-4 py-4 flex flex-col gap-3">
                             {navLinks.map((link) => (
-                                <span key={link.label} className="text-sm text-zinc-300 py-1 transition-all duration-300 hover:text-white hover:translate-x-2 cursor-pointer">
+                                /* MOBILE NAV LINKS: font-sans */
+                                <span key={link.label} className="font-sans text-sm text-zinc-300 py-1 transition-all duration-300 hover:text-white hover:translate-x-2 cursor-pointer">
                                     {link.label}
                                 </span>
                             ))}
                             <div className="flex flex-col gap-2.5 pt-3 border-t border-white/10 mt-2">
                                 <Link
                                     to="/login"
-                                    className="w-full text-center text-sm font-semibold text-white bg-white/10 hover:bg-white/15 py-2.5 rounded-lg transition-all duration-300 active:scale-95"
+                                    /* MOBILE LOGIN BUTTON: font-sans */
+                                    className="font-sans w-full text-center text-sm font-semibold text-white bg-white/10 hover:bg-white/15 py-2.5 rounded-lg transition-all duration-300 active:scale-95"
                                 >
                                     Log in
                                 </Link>
                                 <Link
                                     to="/register"
-                                    className="w-full bg-amber-400 text-[#0B1210] text-sm font-semibold py-2.5 rounded-lg text-center transition-all duration-300 hover:bg-amber-300 active:scale-95 shadow-md"
+                                    /* MOBILE REGISTER BUTTON: font-sans */
+                                    className="font-sans w-full bg-amber-400 text-[#0B1210] text-sm font-semibold py-2.5 rounded-lg text-center transition-all duration-300 hover:bg-amber-300 active:scale-95 shadow-md"
                                 >
                                     Get Started Free
                                 </Link>
