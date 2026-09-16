@@ -9,7 +9,7 @@ import { FaDiscord, FaGithub } from 'react-icons/fa';
 
 import { useAuth } from '../context/AuthContext';
 import { REGISTER_MUTATION } from '../graphql/auth';
-import { SmoothImage } from './SmoothImage'; // Adjust path based on your folder structure
+import { SmoothImage } from './SmoothImage';
 
 interface RegisterFormInputs {
     name: string;
@@ -85,8 +85,8 @@ export const Register = () => {
                 {/* Brand Logo Header */}
                 <div className="absolute top-6 left-6 sm:left-12 xl:left-20 flex items-center gap-2">
                     <Sparkles className="text-[#d9a05b] w-5 h-5" strokeWidth={2} />
-                    <span className="font-semibold text-[#081B21] tracking-wide text-lg">
-                        AKASHIX<span className="text-[#d9a05b]">CORE</span>
+                    <span className="font-serif font-semibold text-[#081B21] tracking-wide text-lg">
+                        AKASHIX<span className="font-mono text-[#d9a05b]">CORE</span>
                     </span>
                 </div>
 
@@ -96,13 +96,13 @@ export const Register = () => {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className="w-full max-w-sm mx-auto mt-8 lg:mt-4"
                 >
-                    <span className="text-[#d9a05b] text-[10px] font-bold tracking-[0.2em] uppercase mb-2 block">
+                    <span className="font-mono text-[#d9a05b] text-[10px] font-bold tracking-[0.2em] uppercase mb-2 block">
                         BEGIN YOUR JOURNEY
                     </span>
                     <h1 className="font-serif text-3xl sm:text-4xl text-[#081B21] mb-3 leading-tight">
                         Create your account
                     </h1>
-                    <p className="text-zinc-500 text-xs sm:text-sm mb-6 leading-relaxed">
+                    <p className="font-sans text-zinc-500 text-xs sm:text-sm mb-6 leading-relaxed">
                         Start your journey as a worldbuilder.
                     </p>
 
@@ -110,7 +110,7 @@ export const Register = () => {
 
                         {/* Name Field */}
                         <div className="space-y-1">
-                            <label className="block text-xs font-semibold text-[#081B21]" htmlFor="name">
+                            <label className="font-sans block text-xs font-semibold text-[#081B21]" htmlFor="name">
                                 Full name
                             </label>
                             <div className="relative">
@@ -120,17 +120,17 @@ export const Register = () => {
                                 <input
                                     id="name"
                                     type="text"
-                                    className={`block w-full bg-white border pl-10 pr-4 py-2.5 text-[#081B21] placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#d9a05b] focus:border-[#d9a05b] rounded-lg transition-all text-sm shadow-sm ${errors.name ? 'border-red-400' : 'border-zinc-200'}`}
+                                    className={`font-sans block w-full bg-white border pl-10 pr-4 py-2.5 text-[#081B21] placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#d9a05b] focus:border-[#d9a05b] rounded-lg transition-all text-sm shadow-sm ${errors.name ? 'border-red-400' : 'border-zinc-200'}`}
                                     placeholder="Enter your full name"
                                     {...register('name', { required: 'Full name is required' })}
                                 />
                             </div>
-                            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
+                            {errors.name && <p className="font-sans text-xs text-red-500 mt-1">{errors.name.message}</p>}
                         </div>
 
                         {/* Email Field */}
                         <div className="space-y-1">
-                            <label className="block text-xs font-semibold text-[#081B21]" htmlFor="email">
+                            <label className="font-sans block text-xs font-semibold text-[#081B21]" htmlFor="email">
                                 Email address
                             </label>
                             <div className="relative">
@@ -141,17 +141,17 @@ export const Register = () => {
                                     id="email"
                                     type="email"
                                     autoComplete="email"
-                                    className={`block w-full bg-white border pl-10 pr-4 py-2.5 text-[#081B21] placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#d9a05b] focus:border-[#d9a05b] rounded-lg transition-all text-sm shadow-sm ${errors.email ? 'border-red-400' : 'border-zinc-200'}`}
+                                    className={`font-sans block w-full bg-white border pl-10 pr-4 py-2.5 text-[#081B21] placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#d9a05b] focus:border-[#d9a05b] rounded-lg transition-all text-sm shadow-sm ${errors.email ? 'border-red-400' : 'border-zinc-200'}`}
                                     placeholder="Enter your email"
                                     {...register('email', { required: 'Email is required' })}
                                 />
                             </div>
-                            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+                            {errors.email && <p className="font-sans text-xs text-red-500 mt-1">{errors.email.message}</p>}
                         </div>
 
                         {/* Password Field */}
                         <div className="space-y-1">
-                            <label className="block text-xs font-semibold text-[#081B21]" htmlFor="password">
+                            <label className="font-sans block text-xs font-semibold text-[#081B21]" htmlFor="password">
                                 Password
                             </label>
                             <div className="relative">
@@ -162,7 +162,7 @@ export const Register = () => {
                                     id="password"
                                     type={showPassword ? "text" : "password"}
                                     autoComplete="new-password"
-                                    className={`block w-full bg-white border pl-10 pr-10 py-2.5 text-[#081B21] placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#d9a05b] focus:border-[#d9a05b] rounded-lg transition-all text-sm shadow-sm ${errors.password ? 'border-red-400' : 'border-zinc-200'}`}
+                                    className={`font-sans block w-full bg-white border pl-10 pr-10 py-2.5 text-[#081B21] placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#d9a05b] focus:border-[#d9a05b] rounded-lg transition-all text-sm shadow-sm ${errors.password ? 'border-red-400' : 'border-zinc-200'}`}
                                     placeholder="Create a password"
                                     {...register('password', {
                                         required: 'Password is required',
@@ -177,7 +177,7 @@ export const Register = () => {
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
-                            {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
+                            {errors.password && <p className="font-sans text-xs text-red-500 mt-1">{errors.password.message}</p>}
                         </div>
 
                         {/* Terms Agreement Checkbox */}
@@ -188,13 +188,13 @@ export const Register = () => {
                                 required
                                 className="w-4 h-4 mt-0.5 rounded border-zinc-300 text-[#0F2C24] focus:ring-[#0F2C24]"
                             />
-                            <label htmlFor="terms" className="text-xs text-zinc-600 font-medium cursor-pointer leading-tight">
+                            <label htmlFor="terms" className="font-sans text-xs text-zinc-600 font-medium cursor-pointer leading-tight">
                                 I agree to the <span className="text-[#d9a05b]">Terms of Service</span> and <span className="text-[#d9a05b]">Privacy Policy</span>
                             </label>
                         </div>
 
                         {authError && (
-                            <div className="text-xs text-red-500 bg-red-50 border border-red-100 p-2.5 rounded-lg">
+                            <div className="font-sans text-xs text-red-500 bg-red-50 border border-red-100 p-2.5 rounded-lg">
                                 {authError}
                             </div>
                         )}
@@ -205,7 +205,7 @@ export const Register = () => {
                             disabled={loading}
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.98 }}
-                            className="w-full flex justify-between items-center bg-[#0F2C24] hover:bg-[#153b30] px-5 py-3 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 mt-1 cursor-pointer shadow-md"
+                            className="font-sans w-full flex justify-between items-center bg-[#0F2C24] hover:bg-[#153b30] px-5 py-3 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 mt-1 cursor-pointer shadow-md"
                         >
                             <span>{loading ? 'Creating account...' : 'Create Account'}</span>
                             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
@@ -216,24 +216,24 @@ export const Register = () => {
                     <div className="mt-5">
                         <div className="flex items-center gap-4 mb-3">
                             <div className="h-px bg-zinc-200 flex-1"></div>
-                            <span className="text-[10px] text-zinc-400 uppercase tracking-widest">or sign up with</span>
+                            <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">or sign up with</span>
                             <div className="h-px bg-zinc-200 flex-1"></div>
                         </div>
 
                         <div className="grid grid-cols-3 gap-2.5">
-                            <button className="flex items-center justify-center gap-2 bg-white border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 py-2 px-3 rounded-lg text-xs font-medium text-zinc-700 transition-all cursor-pointer shadow-sm">
+                            <button className="font-sans flex items-center justify-center gap-2 bg-white border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 py-2 px-3 rounded-lg text-xs font-medium text-zinc-700 transition-all cursor-pointer shadow-sm">
                                 <FcGoogle className="w-4 h-4 shrink-0" /> <span className="truncate">Google</span>
                             </button>
-                            <button className="flex items-center justify-center gap-2 bg-white border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 py-2 px-3 rounded-lg text-xs font-medium text-zinc-700 transition-all cursor-pointer shadow-sm">
+                            <button className="font-sans flex items-center justify-center gap-2 bg-white border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 py-2 px-3 rounded-lg text-xs font-medium text-zinc-700 transition-all cursor-pointer shadow-sm">
                                 <FaDiscord className="w-4 h-4 text-[#5865F2] shrink-0" /> <span className="truncate">Discord</span>
                             </button>
-                            <button className="flex items-center justify-center gap-2 bg-white border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 py-2 px-3 rounded-lg text-xs font-medium text-zinc-700 transition-all cursor-pointer shadow-sm">
+                            <button className="font-sans flex items-center justify-center gap-2 bg-white border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 py-2 px-3 rounded-lg text-xs font-medium text-zinc-700 transition-all cursor-pointer shadow-sm">
                                 <FaGithub className="w-4 h-4 shrink-0" /> <span className="truncate">GitHub</span>
                             </button>
                         </div>
                     </div>
 
-                    <p className="text-center text-xs text-zinc-600 mt-5">
+                    <p className="font-sans text-center text-xs text-zinc-600 mt-5">
                         Already have an account?{' '}
                         <Link to="/login" className="text-[#d9a05b] font-semibold hover:text-amber-700 transition-colors">
                             Log in
@@ -242,7 +242,7 @@ export const Register = () => {
 
                     <div className="flex items-center justify-center gap-2 mt-6 text-zinc-400">
                         <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                        <span className="text-[11px]">Your data is encrypted and secure</span>
+                        <span className="font-mono uppercase tracking-wide text-[10px]">Your data is encrypted and secure</span>
                     </div>
 
                 </motion.div>
@@ -279,8 +279,8 @@ export const Register = () => {
                                 <Icon className="w-4 h-4 text-[#d9a05b]" strokeWidth={1.5} />
                             </div>
                             <div>
-                                <h4 className="text-white text-xs font-semibold mb-0.5">{title}</h4>
-                                <p className="text-zinc-400 text-[11px] leading-tight">{desc}</p>
+                                <h4 className="font-sans text-white text-xs font-semibold mb-0.5">{title}</h4>
+                                <p className="font-sans text-zinc-400 text-[11px] leading-tight">{desc}</p>
                             </div>
                         </motion.div>
                     ))}
