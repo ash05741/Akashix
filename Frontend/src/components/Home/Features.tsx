@@ -40,15 +40,18 @@ export default function Features() {
                     transition={{ duration: 0.6, ease: "easeOut" }}
                     className="text-center max-w-2xl mx-auto mb-16"
                 >
-                    <span className="text-amber-600 text-sm font-semibold tracking-widest uppercase">
+                    {/* KICKER BADGE: font-mono for structure */}
+                    <span className="font-mono text-amber-600 text-sm font-semibold tracking-widest uppercase">
                         Powerful tools for every story
                     </span>
 
+                    {/* MAIN HEADING: font-serif for literary elegance */}
                     <h2 className="font-serif text-4xl sm:text-5xl font-semibold text-zinc-900 mt-3 mb-4">
                         Everything connected. Every detail matters.
                     </h2>
 
-                    <p className="text-lg text-zinc-600 leading-relaxed">
+                    {/* SUB-PARAGRAPH: font-sans for clean readability */}
+                    <p className="font-sans text-lg text-zinc-600 leading-relaxed">
                         From the smallest village to the deepest history, keep your world
                         rich, connected, and ready to tell.
                     </p>
@@ -66,11 +69,14 @@ export default function Features() {
                         >
                             <Icon className="w-8 h-8 text-emerald-800 mb-4 transition-transform duration-500 group-hover:scale-110 group-hover:-translate-y-1" strokeWidth={1.5} />
 
-                            <h3 className="text-lg font-semibold text-zinc-900 mb-2">{title}</h3>
+                            {/* CARD TITLE: font-sans */}
+                            <h3 className="font-sans text-lg font-semibold text-zinc-900 mb-2">{title}</h3>
 
-                            <p className="text-base text-zinc-500 leading-relaxed mb-4">{desc}</p>
+                            {/* CARD DESCRIPTION: font-sans */}
+                            <p className="font-sans text-base text-zinc-500 leading-relaxed mb-4">{desc}</p>
 
-                            <button className="flex items-center gap-1.5 text-amber-600 text-base font-medium transition-colors duration-300 group-hover:text-amber-700">
+                            {/* CARD BUTTON: font-sans */}
+                            <button className="font-sans flex items-center gap-1.5 text-amber-600 text-base font-medium transition-colors duration-300 group-hover:text-amber-700">
                                 Learn more <span className="transition-transform duration-300 group-hover:translate-x-1.5">→</span>
                             </button>
                         </motion.div>

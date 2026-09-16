@@ -63,11 +63,13 @@ export default function Footer() {
                 >
                     <Link to="/" className="flex items-center gap-2 mb-3 group">
                         <Sparkles className="w-5 h-5 text-amber-400 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110" strokeWidth={1.75} />
-                        <span className="font-semibold text-white">
-                            AKASHIX<span className="text-amber-400">CORE</span>
+                        {/* LOGO: font-serif and font-mono */}
+                        <span className="font-serif font-semibold text-white tracking-wide">
+                            AKASHIX<span className="font-mono text-amber-400">CORE</span>
                         </span>
                     </Link>
-                    <p className="text-zinc-500 text-sm leading-relaxed mb-6">
+                    {/* PARAGRAPH: font-sans */}
+                    <p className="font-sans text-zinc-500 text-sm leading-relaxed mb-6">
                         The all-in-one worldbuilding and narrative design platform for writers, by writers.
                     </p>
 
@@ -101,7 +103,8 @@ export default function Footer() {
                         viewport={{ once: true, margin: "-20px" }}
                         transition={{ duration: 0.6, delay: 0.1 + (index * 0.1), ease: "easeOut" }}
                     >
-                        <h4 className="text-zinc-500 text-xs font-semibold tracking-widest uppercase mb-4">
+                        {/* COLUMN HEADERS: font-mono for clean structure */}
+                        <h4 className="font-mono text-zinc-500 text-xs font-semibold tracking-widest uppercase mb-4">
                             {col.title}
                         </h4>
                         <ul className="space-y-3">
@@ -111,9 +114,10 @@ export default function Footer() {
                                     whileHover={{ x: 6 }}
                                     transition={{ duration: 0.2, ease: "easeOut" }}
                                 >
+                                    {/* COLUMN LINKS: font-sans */}
                                     <Link
                                         to={link.path}
-                                        className="text-zinc-400 text-sm hover:text-white transition-colors block"
+                                        className="font-sans text-zinc-400 text-sm hover:text-white transition-colors block"
                                     >
                                         {link.name}
                                     </Link>
@@ -131,7 +135,8 @@ export default function Footer() {
                 transition={{ duration: 0.8, delay: 0.6 }}
                 className="border-t border-white/10 py-5"
             >
-                <p className="text-center text-zinc-600 text-xs">
+                {/* COPYRIGHT: font-mono */}
+                <p className="font-mono text-center text-zinc-600 text-xs tracking-wider uppercase">
                     © 2026 AkashixCore. All rights reserved.
                 </p>
             </motion.div>

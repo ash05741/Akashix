@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { SmoothImage } from '../SmoothImage';
+
 export default function CTABanner() {
     return (
         <section className="bg-[#FAF6ED] pb-24">
@@ -33,6 +34,7 @@ export default function CTABanner() {
 
                     <div className="relative z-10 flex w-full flex-col md:flex-row items-center justify-between px-8 py-15 sm:px-12 md:pl-[35%] lg:pl-[35%] gap-8">
                         <div className="text-center md:text-left">
+                            {/* CTA HEADING: font-serif */}
                             <motion.h3
                                 initial={{ opacity: 0, y: 15 }}
                                 whileInView={{ opacity: 1, y: 0 }}
@@ -42,12 +44,14 @@ export default function CTABanner() {
                             >
                                 Ready to build your universe?
                             </motion.h3>
+
+                            {/* CTA PARAGRAPH: font-sans */}
                             <motion.p
                                 initial={{ opacity: 0, y: 15 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-                                className="text-zinc-300/90 text-sm sm:text-base"
+                                className="font-sans text-zinc-300/90 text-sm sm:text-base"
                             >
                                 Join thousands of writers and start crafting stories <br /> that live forever.
                             </motion.p>
@@ -61,19 +65,22 @@ export default function CTABanner() {
                             className="text-center shrink-0"
                         >
                             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                {/* CTA BUTTON: font-sans */}
                                 <Link
                                     to="/register"
-                                    className="group bg-[#EBBF6B] hover:bg-[#dfb461] text-[#0F2C24] font-bold px-7 py-3 rounded-md flex items-center gap-2 transition-colors duration-300 shadow-md inline-flex"
+                                    className="font-sans group bg-[#EBBF6B] hover:bg-[#dfb461] text-[#0F2C24] font-bold px-7 py-3 rounded-md flex items-center gap-2 transition-colors duration-300 shadow-md inline-flex"
                                 >
                                     Start Building Free <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                                 </Link>
                             </motion.div>
+
+                            {/* DISCLAIMER: font-mono for a technical system look */}
                             <motion.span
                                 initial={{ opacity: 0 }}
                                 whileInView={{ opacity: 1 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.5, delay: 0.6 }}
-                                className="text-zinc-400 text-sm mt-5 block"
+                                className="font-mono uppercase tracking-widest text-zinc-400 text-[10px] mt-4 block"
                             >
                                 No credit card required
                             </motion.span>

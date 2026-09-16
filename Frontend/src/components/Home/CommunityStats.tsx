@@ -1,6 +1,7 @@
 import { Users2, BookOpenCheck, Lightbulb, HeadphonesIcon, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { SmoothImage } from '../SmoothImage';
+
 const stats = [
     { icon: Users2, value: '15K+', label: 'Active Members' },
     { icon: BookOpenCheck, value: '2.5K+', label: 'Stories Shared' },
@@ -48,11 +49,13 @@ export default function CommunityStats() {
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
                             >
-                                <span className="text-[#D4B976] text-[10px] sm:text-xs font-bold tracking-[0.15em] uppercase">
+                                {/* TOP BADGE: font-mono for that technical tracking label look */}
+                                <span className="font-mono text-[#D4B976] text-[10px] sm:text-xs font-bold tracking-[0.15em] uppercase">
                                     Join a growing community
                                 </span>
                             </motion.div>
 
+                            {/* MAIN HEADING: font-serif for cinematic storytelling */}
                             <motion.h3
                                 initial={{ opacity: 0, x: -20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
@@ -63,12 +66,13 @@ export default function CommunityStats() {
                                 Writers building worlds together.
                             </motion.h3>
 
+                            {/* PARAGRAPH: font-sans for clean UI readability */}
                             <motion.p
                                 initial={{ opacity: 0, x: -20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.5, delay: 0.4, ease: "easeOut" }}
-                                className="text-zinc-300/90 leading-relaxed mb-8 text-sm sm:text-base"
+                                className="font-sans text-zinc-300/90 leading-relaxed mb-8 text-sm sm:text-base"
                             >
                                 AkashixCore is more than a tool — it's a community of storytellers
                                 who inspire, support, and grow together.
@@ -80,10 +84,11 @@ export default function CommunityStats() {
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.5, delay: 0.5, ease: "easeOut" }}
                             >
+                                {/* BUTTON: font-sans */}
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
-                                    className="group flex items-center gap-3 border border-[#D4B976]/40 hover:border-[#D4B976]/80 hover:bg-[#D4B976]/10 text-zinc-100 px-6 py-2.5 rounded-lg text-sm font-medium w-fit transition-colors duration-300 cursor-pointer"
+                                    className="font-sans group flex items-center gap-3 border border-[#D4B976]/40 hover:border-[#D4B976]/80 hover:bg-[#D4B976]/10 text-zinc-100 px-6 py-2.5 rounded-lg text-sm font-medium w-fit transition-colors duration-300 cursor-pointer"
                                 >
                                     Join Our Community <ArrowRight className="w-4 h-4 text-[#D4B976] transition-transform duration-300 group-hover:translate-x-1.5" />
                                 </motion.button>
@@ -105,9 +110,11 @@ export default function CommunityStats() {
                                         <Icon className="w-6 h-6 text-[#D4B976]" strokeWidth={1.2} />
                                     </div>
 
-                                    <div className="text-white text-3xl font-serif mb-2 transition-transform duration-500 group-hover:scale-105">{value}</div>
+                                    {/* STAT VALUE: font-mono for raw data precision */}
+                                    <div className="font-mono font-bold text-white text-3xl mb-2 transition-transform duration-500 group-hover:scale-105">{value}</div>
 
-                                    <div className="text-zinc-400 text-[11px] lg:text-xs font-medium tracking-wide transition-colors duration-500 group-hover:text-zinc-300">
+                                    {/* STAT LABEL: font-sans */}
+                                    <div className="font-sans text-zinc-400 text-[11px] lg:text-xs font-medium tracking-wide transition-colors duration-500 group-hover:text-zinc-300">
                                         {label}
                                     </div>
                                 </motion.div>
