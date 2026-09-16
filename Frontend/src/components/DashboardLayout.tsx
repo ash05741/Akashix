@@ -49,13 +49,13 @@ export const DashboardLayout = () => {
                         <Hexagon className="w-4 h-4 text-[#d9a05b]" strokeWidth={2.2} />
                     </div>
                     <span className="font-serif text-sm font-bold tracking-wider text-zinc-900 uppercase">
-                        AKASHIX<span className="text-[#d9a05b]">CORE</span>
+                        AKASHIX<span className="font-mono text-[#d9a05b]">CORE</span>
                     </span>
                 </div>
 
                 {/* Workspace Indicator */}
                 <div className="px-6 py-5 border-b border-zinc-100 shrink-0 bg-zinc-50/70">
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <p className="font-mono text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-[#d9a05b]"></div>
                         Current Workspace
                     </p>
@@ -68,7 +68,7 @@ export const DashboardLayout = () => {
 
                 {/* Navigation Links */}
                 <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
-                    <div className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase mb-3 px-3">
+                    <div className="font-mono text-[10px] font-bold text-zinc-400 tracking-widest uppercase mb-3 px-3">
                         Active Modules
                     </div>
                     {navItems.map((item) => {
@@ -81,7 +81,7 @@ export const DashboardLayout = () => {
                                 to={item.path}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={`
-                                    flex items-center gap-3 px-4 py-3 text-xs font-bold tracking-wider uppercase transition-all duration-200 rounded-2xl border cursor-pointer
+                                    font-mono flex items-center gap-3 px-4 py-3 text-xs font-bold tracking-wider uppercase transition-all duration-200 rounded-2xl border cursor-pointer
                                     hover:-translate-y-0.5 active:translate-y-0.5
                                     ${isActive
                                         ? 'bg-[#081B21] text-white border-[#081B21] shadow-md'
@@ -100,7 +100,7 @@ export const DashboardLayout = () => {
                 <div className="p-4 border-t border-zinc-100 shrink-0 bg-white">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center justify-center gap-2.5 w-full px-4 py-3 border border-zinc-200 text-xs font-bold tracking-wider uppercase text-zinc-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50/50 transition-all duration-200 rounded-2xl shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 cursor-pointer"
+                        className="font-mono flex items-center justify-center gap-2.5 w-full px-4 py-3 border border-zinc-200 text-xs font-bold tracking-wider uppercase text-zinc-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50/50 transition-all duration-200 rounded-2xl shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 cursor-pointer"
                     >
                         <LogOut className="w-4 h-4" strokeWidth={1.8} />
                         Disconnect
