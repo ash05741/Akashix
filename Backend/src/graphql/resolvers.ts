@@ -4,8 +4,9 @@ import { Character } from '../models/character.js';
 import { User } from '../models/user.js';
 import Lore from '../models/lore.js';
 import { Workspace } from '../models/workspace.js';
-
+import { createClient } from '@supabase/supabase-js';
 import { GoogleGenAI } from '@google/genai';
+import crypto from 'crypto';
 
 export interface ApolloContext {
     userId?: string;
@@ -14,6 +15,12 @@ export interface ApolloContext {
 }
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
+
+// NOTE: For createSignedUploadUrl to work properly, this should ideally use your secret service_role key
+const supabase = createClient(
+    process.env.SUPABASE_URL as string,
+    (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_ANON_KEY) as string
+);
 
 export const resolvers = {
     Query: {
@@ -132,17 +139,56 @@ export const resolvers = {
             return { token, user };
         },
 
+        // --- DIRECT UPLOAD PERMIT (FIXED TYPES) ---
+        getPresignedUploadUrl: async (
+            _parent: any,
+            { fileName, folder = 'workspaces' }: { fileName: string; folder?: string },
+            _context: ApolloContext
+        ) => {
+            const extension = fileName.split('.').pop() || 'png';
+            const uniqueFileName = `${folder}/${crypto.randomUUID()}.${extension}`;
+
+            const { data, error } = await supabase
+                .storage
+                .from('akashix-assets') // Your bucket name
+                .createSignedUploadUrl(uniqueFileName);
+
+            if (error || !data) {
+                throw new Error(`Supabase Error: ${error?.message || 'Failed to create signed URL'}`);
+            }
+
+            const fileUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/akashix-assets/${uniqueFileName}`;
+
+            return {
+                uploadUrl: data.signedUrl,
+                fileUrl: fileUrl,
+            };
+        },
+
         // --- WORKSPACE MANAGEMENT ---
-        createWorkspace: async (_parent: any, { name, description }: { name: string, description?: string }, context: ApolloContext) => {
+        createWorkspace: async (_parent: any, { name, description, imageUrl }: { name: string, description?: string, imageUrl?: string }, context: ApolloContext) => {
             if (!context.userId) throw new Error('Unauthorized: Missing User ID');
 
             const newWorkspace = new Workspace({
                 name,
                 description,
+                imageUrl,
                 ownerId: context.userId
             });
 
             return await newWorkspace.save();
+        },
+
+        updateUserAvatar: async (_parent: any, { avatarUrl }: { avatarUrl: string }, context: ApolloContext) => {
+            if (!context.userId) throw new Error('Unauthorized');
+
+            const updatedUser = await User.findByIdAndUpdate(
+                context.userId,
+                { avatarUrl },
+                { new: true }
+            );
+
+            return updatedUser;
         },
 
         updateWorkspacePrivacy: async (_parent: any, { id, isPublic }: { id: string, isPublic: boolean }, context: ApolloContext) => {
@@ -175,12 +221,11 @@ export const resolvers = {
         },
 
         // --- CHARACTER MANAGEMENT ---
-        createCharacter: async (_: any, args: any, context: ApolloContext) => {
+        createCharacter: async (_parent: any, args: any, context: ApolloContext) => {
             if (!context.workspaceId) {
                 throw new Error("Unauthorized: No workspace ID found");
             }
 
-            // FIXED: We extracted relatedLoreIds from the incoming args!
             const { name, role, has3DModel, stats, relatedLore } = args;
 
             const newCharacter = new Character({
@@ -197,12 +242,10 @@ export const resolvers = {
             });
 
             await newCharacter.save();
-
-            // FIXED: We populate the lore data before sending it back to the frontend
             return await newCharacter.populate('relatedLore');
         },
 
-        deleteCharacter: async (_: any, { id }: { id: string }, context: ApolloContext) => {
+        deleteCharacter: async (_parent: any, { id }: { id: string }, context: ApolloContext) => {
             if (!context.workspaceId) {
                 throw new Error("Unauthorized: No workspace ID found");
             }
@@ -216,8 +259,7 @@ export const resolvers = {
             return true;
         },
 
-        updateCharacter: async (_: any, { id, ...updates }: any) => {
-            // { new: true } guarantees Apollo gets the fresh data back to update the cache
+        updateCharacter: async (_parent: any, { id, ...updates }: any) => {
             return await Character.findByIdAndUpdate(id, updates, { new: true });
         },
 
@@ -245,12 +287,12 @@ export const resolvers = {
             return true;
         },
 
-        updateLore: async (_: any, { id, ...updates }: any) => {
+        updateLore: async (_parent: any, { id, ...updates }: any) => {
             return await Lore.findByIdAndUpdate(id, updates, { new: true });
         },
 
         // --- AI TOOLS ---
-        enhanceLore: async (_: any, { text }: { text: string }) => {
+        enhanceLore: async (_parent: any, { text }: { text: string }) => {
             try {
                 const prompt = `
                     You are a strict copyeditor. Fix the grammar, spelling, and punctuation of the following text. 

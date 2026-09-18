@@ -34,8 +34,9 @@ export const typeDefs = `#graphql
     id: ID!
     name: String!
     description: String
+    imageUrl: String # <-- NEW: Workspace thumbnail
     ownerId: ID!
-    isPublic: Boolean! # <-- NEW: Privacy flag
+    isPublic: Boolean! 
     createdAt: String
     updatedAt: String
   }
@@ -52,6 +53,7 @@ export const typeDefs = `#graphql
     name: String!
     email: String!
     role: String!
+    avatarUrl: String # <-- NEW: Profile picture
   }
 
   type AuthPayload {
@@ -59,10 +61,16 @@ export const typeDefs = `#graphql
     user: User!
   }
 
-  # --- NEW: Social Profile Type ---
+  # --- Social Profile Type ---
   type UserProfile {
     user: User!
     publicWorkspaces: [Workspace!]!
+  }
+
+  # --- NEW: Storage Types ---
+  type PresignedUrlResponse {
+    uploadUrl: String!
+    fileUrl: String!
   }
 
   type Query {
@@ -78,7 +86,7 @@ export const typeDefs = `#graphql
     # Workspaces
     getMyWorkspaces: [Workspace!]!
 
-    # NEW: Social & Discovery
+    # Social & Discovery
     searchUsers(query: String!): [User!]!
     getUserProfile(userId: ID!): UserProfile!
   }
@@ -95,13 +103,17 @@ export const typeDefs = `#graphql
     enhanceLore(text: String!): String!
     updateLore(id: ID!, title: String, content: String, category: String): Lore
 
-    # Auth Mutations
+    # Auth & User Mutations
     register(name: String!, email: String!, password: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload!
+    updateUserAvatar(avatarUrl: String!): User! # <-- NEW: Save profile pic
     
-    # Workspace Mutation
-    createWorkspace(name: String!, description: String): Workspace!
+    # Workspace Mutations
+    createWorkspace(name: String!, description: String, imageUrl: String): Workspace! # <-- UPDATED
     updateWorkspacePrivacy(id: ID!, isPublic: Boolean!): Workspace!
     deleteWorkspace(id: ID!): Boolean!
+
+    # NEW: Storage Mutations
+    getPresignedUploadUrl(fileName: String!, folder: String): PresignedUrlResponse!
   }
 `;
