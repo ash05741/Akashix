@@ -5,12 +5,13 @@ import { gql } from '@apollo/client';
 import {
     Plus, Loader2, X, Server, ChevronRight,
     User as UserIcon, Globe, Lock, Code, Calendar,
-    Sparkles, Crown, Search, Castle, Terminal
+    Sparkles, Crown, Search, Castle, Terminal, Camera // <-- NEW: Imported Camera
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-// Import the uploader component we just built (adjust path if needed)
 import { ImageUploader } from '../ImageUploader';
+// Make sure this path matches where you put the hook!
+import { useImageUpload } from '../../hooks/useImageUpload';
 
 // --- GraphQL Operations ---
 const GET_MY_WORKSPACES = gql`
@@ -19,7 +20,7 @@ const GET_MY_WORKSPACES = gql`
       id
       name
       description
-      imageUrl # <-- NEW: Fetch the image
+      imageUrl
       isPublic
       createdAt
     }
@@ -27,13 +28,23 @@ const GET_MY_WORKSPACES = gql`
 `;
 
 const CREATE_WORKSPACE = gql`
-  mutation CreateWorkspace($name: String!, $description: String, $imageUrl: String) { # <-- NEW: Accept imageUrl
+  mutation CreateWorkspace($name: String!, $description: String, $imageUrl: String) {
     createWorkspace(name: $name, description: $description, imageUrl: $imageUrl) {
       id
       name
       description
-      imageUrl # <-- NEW: Return the image
+      imageUrl
       isPublic
+    }
+  }
+`;
+
+// --- NEW: Avatar Mutation ---
+const UPDATE_USER_AVATAR = gql`
+  mutation UpdateUserAvatar($avatarUrl: String!) {
+    updateUserAvatar(avatarUrl: $avatarUrl) {
+      id
+      avatarUrl
     }
   }
 `;
@@ -42,7 +53,7 @@ interface Workspace {
     id: string;
     name: string;
     description: string | null;
-    imageUrl: string | null; // <-- NEW
+    imageUrl: string | null;
     isPublic: boolean;
     createdAt: string;
 }
@@ -66,11 +77,15 @@ const formatRealmDate = (timestamp: string) => {
 
 export default function Workspaces() {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    // --- NEW: Destructured updateUser from AuthContext ---
+    const { user, updateUser } = useAuth();
+
+    // --- NEW: Setup the image upload hook for the avatar ---
+    const { uploadImage, isUploading: isUploadingAvatar } = useImageUpload();
+    const [updateAvatarMutation] = useMutation(UPDATE_USER_AVATAR);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    // --- NEW: Added imageUrl to form state ---
     const [formData, setFormData] = useState({ name: '', description: '', imageUrl: '' });
 
     const { data, loading, error } = useQuery<WorkspacesData>(GET_MY_WORKSPACES);
@@ -79,7 +94,6 @@ export default function Workspaces() {
         refetchQueries: [{ query: GET_MY_WORKSPACES }],
         onCompleted: (result) => {
             setIsModalOpen(false);
-            // --- NEW: Reset imageUrl ---
             setFormData({ name: '', description: '', imageUrl: '' });
             if (result?.createWorkspace) {
                 handleEnterWorkspace(result.createWorkspace.id, result.createWorkspace.name);
@@ -100,6 +114,26 @@ export default function Workspaces() {
         localStorage.setItem('workspaceId', id);
         localStorage.setItem('workspaceName', name);
         navigate('/dashboard');
+    };
+
+    // --- NEW: Avatar Upload Handler ---
+    const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            // 1. Upload to Supabase bucket under the 'avatars' folder
+            const permanentUrl = await uploadImage(file, 'avatars');
+
+            // 2. Update the backend MongoDB database
+            await updateAvatarMutation({ variables: { avatarUrl: permanentUrl } });
+
+            // 3. Immediately update the React AuthContext (and localStorage) so the UI updates instantly
+            updateUser({ avatarUrl: permanentUrl });
+        } catch (err: any) {
+            console.error('Failed to update avatar:', err);
+            alert(`Avatar update failed: ${err.message}`);
+        }
     };
 
     if (loading) {
@@ -147,13 +181,38 @@ export default function Workspaces() {
                     className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
                 >
                     <div className="flex items-center gap-5">
-                        <div className="w-20 h-20 bg-white border border-zinc-200 p-1.5 shrink-0 relative shadow-md rounded-2xl">
-                            <div className="w-full h-full bg-[#081B21] rounded-xl flex items-center justify-center overflow-hidden">
+
+                        {/* --- UPDATED: Hoverable Avatar Container --- */}
+                        <div className="w-20 h-20 bg-white border border-zinc-200 p-1.5 shrink-0 relative shadow-md rounded-2xl group">
+                            <div className="w-full h-full bg-[#081B21] rounded-xl flex items-center justify-center overflow-hidden relative">
                                 {user?.avatarUrl ? (
                                     <img src={user.avatarUrl} alt={creatorName} className="w-full h-full object-cover" />
                                 ) : (
                                     <UserIcon className="w-8 h-8 text-[#d9a05b]" strokeWidth={2} />
                                 )}
+
+                                {/* Hover overlay with upload button */}
+                                <label
+                                    htmlFor="avatar-upload"
+                                    className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                >
+                                    {isUploadingAvatar ? (
+                                        <Loader2 className="w-5 h-5 text-[#d9a05b] animate-spin" />
+                                    ) : (
+                                        <>
+                                            <Camera className="w-5 h-5 text-white mb-0.5" />
+                                            <span className="text-[8px] font-mono text-white/90 uppercase font-bold tracking-wider">Change</span>
+                                        </>
+                                    )}
+                                </label>
+                                <input
+                                    type="file"
+                                    id="avatar-upload"
+                                    accept="image/png, image/jpeg, image/webp"
+                                    className="hidden"
+                                    onChange={handleAvatarFileChange}
+                                    disabled={isUploadingAvatar}
+                                />
                             </div>
                             <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white"></div>
                         </div>
@@ -234,7 +293,6 @@ export default function Workspaces() {
                                     onClick={() => handleEnterWorkspace(workspace.id, workspace.name)}
                                     className="flex flex-col sm:flex-row bg-white border border-zinc-200 hover:border-amber-400/60 rounded-2xl p-3 gap-4 group transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
                                 >
-                                    {/* --- NEW: Dynamic image thumbnail --- */}
                                     <div className="w-full sm:w-32 h-32 rounded-xl shrink-0 shadow-inner flex items-center justify-center bg-[#081B21] relative overflow-hidden">
                                         {workspace.imageUrl ? (
                                             <img src={workspace.imageUrl} alt={workspace.name} className="w-full h-full object-cover" />
@@ -246,12 +304,10 @@ export default function Workspaces() {
                                     <div className="flex-1 flex flex-col justify-between py-1 pr-2">
                                         <div>
                                             <div className="flex justify-between items-center mb-2">
-                                                {/* WORKSPACE ID: font-mono */}
                                                 <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-widest">
                                                     ID: {workspace.id.slice(-8).toUpperCase()}
                                                 </span>
                                                 <div className="flex items-center gap-2">
-                                                    {/* ACTIVE STATUS: font-mono */}
                                                     <span className="font-mono flex items-center gap-1.5 px-2 py-0.5 bg-zinc-50 border border-zinc-200 rounded-md text-[9px] font-bold uppercase tracking-wider text-zinc-600">
                                                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div> Active
                                                     </span>
@@ -268,24 +324,20 @@ export default function Workspaces() {
                                                 </div>
                                             </div>
 
-                                            {/* WORKSPACE NAME: font-serif */}
                                             <h3 className="font-serif text-xl font-bold text-zinc-900 tracking-tight mb-1 group-hover:text-amber-700 transition-colors">
                                                 {workspace.name}
                                             </h3>
 
-                                            {/* WORKSPACE DESCRIPTION: font-sans */}
                                             <p className="font-sans text-sm text-zinc-500 line-clamp-1">
                                                 {workspace.description || <span className="italic opacity-60">No description provided.</span>}
                                             </p>
                                         </div>
 
                                         <div className="flex justify-between items-center pt-3 mt-3 border-t border-zinc-100">
-                                            {/* DATE: font-mono */}
                                             <div className="font-mono flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                                                 <Calendar className="w-3.5 h-3.5" />
                                                 {formatRealmDate(workspace.createdAt)}
                                             </div>
-                                            {/* MOUNT ACTION: font-mono */}
                                             <div className="font-mono flex items-center gap-1 text-[10px] font-bold text-amber-700 uppercase tracking-widest transition-transform duration-300 group-hover:translate-x-1">
                                                 Mount Realm <ChevronRight className="w-3.5 h-3.5" />
                                             </div>
@@ -313,7 +365,6 @@ export default function Workspaces() {
                                     <div className="p-1.5 bg-[#081B21] rounded-lg shadow-inner">
                                         <Sparkles className="w-4 h-4 text-[#d9a05b]" />
                                     </div>
-                                    {/* MODAL TITLE: font-serif */}
                                     <h2 className="font-serif text-lg font-bold text-zinc-900">Configure Realm</h2>
                                 </div>
                                 <button onClick={() => setIsModalOpen(false)} className="text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 p-1.5 rounded-lg transition-colors cursor-pointer">
@@ -322,7 +373,6 @@ export default function Workspaces() {
                             </div>
 
                             <form onSubmit={handleCreate} className="p-6 space-y-5">
-                                {/* --- NEW: Image Uploader mounted in form --- */}
                                 <div className="space-y-1.5 border-b border-zinc-100 pb-5 mb-5">
                                     <ImageUploader
                                         label="Realm Cover Image"
@@ -333,7 +383,6 @@ export default function Workspaces() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    {/* FIELD LABEL: font-mono */}
                                     <label className="font-mono block text-[10px] font-bold text-zinc-500 tracking-widest uppercase">
                                         Designation [Name]
                                     </label>
@@ -342,14 +391,12 @@ export default function Workspaces() {
                                         type="text"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        // INPUT: font-sans
                                         className="font-sans block w-full bg-white border border-zinc-200 px-3 py-2.5 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#d9a05b] focus:border-[#d9a05b] rounded-lg transition-all text-sm shadow-sm"
                                         placeholder="e.g. Project Obsidian"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    {/* FIELD LABEL: font-mono */}
                                     <label className="font-mono block text-[10px] font-bold text-zinc-500 tracking-widest uppercase">
                                         Parameters [Description]
                                     </label>
@@ -357,7 +404,6 @@ export default function Workspaces() {
                                         maxLength={200}
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        // TEXTAREA: font-sans
                                         className="font-sans block w-full bg-white border border-zinc-200 px-3 py-2.5 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#d9a05b] focus:border-[#d9a05b] rounded-lg transition-all text-sm shadow-sm resize-none h-24"
                                         placeholder="Define the core parameters of this realm..."
                                     />
@@ -367,7 +413,6 @@ export default function Workspaces() {
                                     <button
                                         type="button"
                                         onClick={() => setIsModalOpen(false)}
-                                        // ABORT BUTTON: font-mono
                                         className="font-mono px-5 py-2 text-xs font-bold text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded-lg uppercase tracking-wider transition-colors cursor-pointer"
                                     >
                                         Abort
@@ -375,7 +420,6 @@ export default function Workspaces() {
                                     <button
                                         type="submit"
                                         disabled={isCreating || !formData.name.trim()}
-                                        // SUBMIT BUTTON: font-mono
                                         className="font-mono flex items-center gap-2 bg-[#0F2C24] hover:bg-[#153b30] text-white px-6 py-2 text-xs font-bold uppercase tracking-wider transition-colors rounded-lg disabled:opacity-50 shadow-sm cursor-pointer"
                                     >
                                         {isCreating ? <><Loader2 className="w-3.5 h-3.5 animate-spin text-[#d9a05b]" /> Compiling...</> : 'Deploy Node'}
