@@ -139,7 +139,7 @@ export const resolvers = {
             return { token, user };
         },
 
-        // --- DIRECT UPLOAD PERMIT (FIXED TYPES) ---
+        // --- DIRECT UPLOAD PERMIT ---
         getPresignedUploadUrl: async (
             _parent: any,
             { fileName, folder = 'workspaces' }: { fileName: string; folder?: string },
@@ -150,7 +150,7 @@ export const resolvers = {
 
             const { data, error } = await supabase
                 .storage
-                .from('akashix-assets') // Your bucket name
+                .from('akashix-assets')
                 .createSignedUploadUrl(uniqueFileName);
 
             if (error || !data) {
@@ -177,6 +177,27 @@ export const resolvers = {
             });
 
             return await newWorkspace.save();
+        },
+
+        // --- NEW: UPDATE EXISTING WORKSPACE ---
+        updateWorkspace: async (_parent: any, { id, name, description, imageUrl }: { id: string, name?: string, description?: string, imageUrl?: string }, context: ApolloContext) => {
+            if (!context.userId) throw new Error('Unauthorized: Missing User ID');
+
+            // 1. Find the workspace and verify ownership
+            const workspace = await Workspace.findOne({ _id: id, ownerId: context.userId });
+
+            if (!workspace) {
+                throw new Error('Workspace not found or you do not have permission to edit it.');
+            }
+
+            // 2. Apply updates conditionally (only update what was sent)
+            if (name !== undefined) workspace.name = name;
+            if (description !== undefined) workspace.description = description;
+            if (imageUrl !== undefined) workspace.imageUrl = imageUrl;
+
+            // 3. Save and return
+            await workspace.save();
+            return workspace;
         },
 
         updateUserAvatar: async (_parent: any, { avatarUrl }: { avatarUrl: string }, context: ApolloContext) => {

@@ -106,10 +106,11 @@ export const typeDefs = `#graphql
     # Auth & User Mutations
     register(name: String!, email: String!, password: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload!
-    updateUserAvatar(avatarUrl: String!): User! # <-- NEW: Save profile pic
+    updateUserAvatar(avatarUrl: String!): User!
     
     # Workspace Mutations
-    createWorkspace(name: String!, description: String, imageUrl: String): Workspace! # <-- UPDATED
+    createWorkspace(name: String!, description: String, imageUrl: String): Workspace!
+    updateWorkspace(id: ID!, name: String, description: String, imageUrl: String): Workspace! # <-- NEW: Update existing workspaces
     updateWorkspacePrivacy(id: ID!, isPublic: Boolean!): Workspace!
     deleteWorkspace(id: ID!): Boolean!
 
