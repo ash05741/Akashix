@@ -5,12 +5,11 @@ import { gql } from '@apollo/client';
 import {
     Plus, Loader2, X, Server, ChevronRight,
     User as UserIcon, Globe, Lock, Code, Calendar,
-    Sparkles, Crown, Search, Castle, Terminal, Camera // <-- NEW: Imported Camera
+    Sparkles, Crown, Search, Castle, Terminal, Camera
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { ImageUploader } from '../ImageUploader';
-// Make sure this path matches where you put the hook!
 import { useImageUpload } from '../../hooks/useImageUpload';
 
 // --- GraphQL Operations ---
@@ -77,10 +76,8 @@ const formatRealmDate = (timestamp: string) => {
 
 export default function Workspaces() {
     const navigate = useNavigate();
-    // --- NEW: Destructured updateUser from AuthContext ---
     const { user, updateUser } = useAuth();
 
-    // --- NEW: Setup the image upload hook for the avatar ---
     const { uploadImage, isUploading: isUploadingAvatar } = useImageUpload();
     const [updateAvatarMutation] = useMutation(UPDATE_USER_AVATAR);
 
@@ -116,19 +113,13 @@ export default function Workspaces() {
         navigate('/dashboard');
     };
 
-    // --- NEW: Avatar Upload Handler ---
     const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         try {
-            // 1. Upload to Supabase bucket under the 'avatars' folder
             const permanentUrl = await uploadImage(file, 'avatars');
-
-            // 2. Update the backend MongoDB database
             await updateAvatarMutation({ variables: { avatarUrl: permanentUrl } });
-
-            // 3. Immediately update the React AuthContext (and localStorage) so the UI updates instantly
             updateUser({ avatarUrl: permanentUrl });
         } catch (err: any) {
             console.error('Failed to update avatar:', err);
@@ -170,9 +161,7 @@ export default function Workspaces() {
 
     return (
         <div className="min-h-screen bg-[#FAF6ED] font-sans selection:bg-amber-200 selection:text-black text-zinc-900 pt-12 pb-24">
-
             <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col gap-10">
-
                 {/* --- COMPACT PROFILE HEADER --- */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -181,27 +170,26 @@ export default function Workspaces() {
                     className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
                 >
                     <div className="flex items-center gap-5">
-
-                        {/* --- UPDATED: Hoverable Avatar Container --- */}
-                        <div className="w-20 h-20 bg-white border border-zinc-200 p-1.5 shrink-0 relative shadow-md rounded-2xl group">
-                            <div className="w-full h-full bg-[#081B21] rounded-xl flex items-center justify-center overflow-hidden relative">
+                        {/* --- UPDATED: Responsive, Circular Avatar Container --- */}
+                        <div className="w-24 h-24 md:w-28 md:h-28 bg-white border border-zinc-200 p-1.5 shrink-0 relative shadow-md rounded-full group transition-all">
+                            <div className="w-full h-full bg-[#081B21] rounded-full flex items-center justify-center overflow-hidden relative">
                                 {user?.avatarUrl ? (
                                     <img src={user.avatarUrl} alt={creatorName} className="w-full h-full object-cover" />
                                 ) : (
-                                    <UserIcon className="w-8 h-8 text-[#d9a05b]" strokeWidth={2} />
+                                    <UserIcon className="w-10 h-10 md:w-12 md:h-12 text-[#d9a05b]" strokeWidth={2} />
                                 )}
 
                                 {/* Hover overlay with upload button */}
                                 <label
                                     htmlFor="avatar-upload"
-                                    className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                    className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full"
                                 >
                                     {isUploadingAvatar ? (
-                                        <Loader2 className="w-5 h-5 text-[#d9a05b] animate-spin" />
+                                        <Loader2 className="w-6 h-6 text-[#d9a05b] animate-spin" />
                                     ) : (
                                         <>
-                                            <Camera className="w-5 h-5 text-white mb-0.5" />
-                                            <span className="text-[8px] font-mono text-white/90 uppercase font-bold tracking-wider">Change</span>
+                                            <Camera className="w-5 h-5 md:w-6 md:h-6 text-white mb-0.5" />
+                                            <span className="text-[8px] md:text-[9px] font-mono text-white/90 uppercase font-bold tracking-wider mt-1">Change</span>
                                         </>
                                     )}
                                 </label>
@@ -214,7 +202,9 @@ export default function Workspaces() {
                                     disabled={isUploadingAvatar}
                                 />
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white"></div>
+
+                            {/* Adjusted status dot to sit perfectly on the curve of the circle */}
+                            <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 w-4 h-4 md:w-4 md:h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
                         </div>
 
                         <div>
@@ -247,7 +237,6 @@ export default function Workspaces() {
                             <div className="p-1.5 rounded-lg bg-amber-50 border border-amber-100">
                                 <Server className="w-4 h-4 text-amber-600" />
                             </div>
-                            {/* SECTION HEADER: font-serif */}
                             <h2 className="font-serif text-xl md:text-2xl font-bold text-zinc-900">Tenant Realms</h2>
                         </div>
 
@@ -259,13 +248,11 @@ export default function Workspaces() {
                                     placeholder="Search realms..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    // SEARCH INPUT: font-sans
                                     className="font-sans w-full bg-white border border-zinc-200 rounded-lg py-2 pl-9 pr-4 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#d9a05b] focus:ring-1 focus:ring-[#d9a05b] shadow-sm transition-all"
                                 />
                             </div>
                             <button
                                 onClick={() => setIsModalOpen(true)}
-                                // DEPLOY BUTTON: font-mono
                                 className="font-mono flex items-center justify-center gap-2 bg-[#0F2C24] hover:bg-[#153b30] text-white px-5 py-2 w-full sm:w-auto text-xs font-bold uppercase tracking-wider transition-colors rounded-lg shadow-sm shrink-0 cursor-pointer"
                             >
                                 <Plus className="w-4 h-4 text-[#d9a05b]" /> Deploy Realm
