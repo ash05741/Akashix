@@ -91,16 +91,22 @@ export default function Overview() {
                 {/* Clean, Compact Header */}
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-zinc-200 pb-6">
                     <div className="flex items-center gap-5">
-                        <div className="w-16 h-16 bg-white border border-zinc-200 p-1 shrink-0 relative shadow-sm rounded-2xl">
-                            <div className="w-full h-full bg-[#081B21] rounded-xl flex items-center justify-center shadow-inner">
-                                <UserIcon className="w-6 h-6 text-[#d9a05b]" strokeWidth={2} />
+
+                        {/* --- UPDATED: Responsive, Circular Avatar Container --- */}
+                        <div className="w-20 h-20 md:w-24 md:h-24 bg-white border border-zinc-200 p-1.5 shrink-0 relative shadow-md rounded-full">
+                            <div className="w-full h-full bg-[#081B21] rounded-full flex items-center justify-center overflow-hidden shadow-inner">
+                                {user?.avatarUrl ? (
+                                    <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <UserIcon className="w-8 h-8 md:w-10 md:h-10 text-[#d9a05b]" strokeWidth={2} />
+                                )}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white"></div>
+                            <div className="absolute bottom-0 right-0 md:bottom-1 md:right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
                         </div>
 
                         <div>
                             <h1 className="font-serif text-2xl md:text-3xl font-bold text-zinc-900 mb-1">
-                                {user?.name || 'Raj'}
+                                {user?.name || 'Verified Creator'}
                             </h1>
                             <div className="flex items-center gap-2">
                                 <span className="px-2.5 py-0.5 bg-white border border-zinc-200 text-zinc-700 text-[9px] font-bold uppercase tracking-widest rounded-lg shadow-xs flex items-center gap-1.5">

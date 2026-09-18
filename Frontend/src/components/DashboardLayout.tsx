@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, Settings, LogOut, Menu, X, Hexagon } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, Settings, LogOut, Menu, X, Hexagon, User as UserIcon } from 'lucide-react'; // <-- IMPORTED UserIcon
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { GlobalSearch } from './Dashboard/GlobalSearch';
 
 export const DashboardLayout = () => {
-    const { logout } = useAuth();
+    // --- UPDATED: Destructure user from useAuth ---
+    const { user, logout } = useAuth();
     const workspaceName = localStorage.getItem('workspaceName') || 'ROOT_WORKSPACE';
 
     const location = useLocation();
@@ -96,8 +97,31 @@ export const DashboardLayout = () => {
                     })}
                 </nav>
 
-                {/* User Footer / Logout */}
-                <div className="p-4 border-t border-zinc-100 shrink-0 bg-white">
+                {/* --- UPDATED: User Profile & Logout Footer --- */}
+                <div className="p-4 border-t border-zinc-100 shrink-0 bg-white flex flex-col gap-4">
+
+                    {/* Compact Profile Display */}
+                    <div className="flex items-center gap-3 px-2">
+                        <div className="w-10 h-10 bg-white border border-zinc-200 p-0.5 shrink-0 relative shadow-sm rounded-full">
+                            <div className="w-full h-full bg-[#081B21] rounded-full flex items-center justify-center overflow-hidden shadow-inner">
+                                {user?.avatarUrl ? (
+                                    <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <UserIcon className="w-5 h-5 text-[#d9a05b]" strokeWidth={1.5} />
+                                )}
+                            </div>
+                            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="font-serif text-sm font-bold text-zinc-900 truncate">
+                                {user?.name || 'Creator'}
+                            </p>
+                            <p className="font-mono text-[9px] font-bold uppercase tracking-widest text-zinc-500 truncate">
+                                Owner
+                            </p>
+                        </div>
+                    </div>
+
                     <button
                         onClick={handleLogout}
                         className="font-mono flex items-center justify-center gap-2.5 w-full px-4 py-3 border border-zinc-200 text-xs font-bold tracking-wider uppercase text-zinc-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50/50 transition-all duration-200 rounded-2xl shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 cursor-pointer"
