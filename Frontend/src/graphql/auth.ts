@@ -9,6 +9,7 @@ export const REGISTER_MUTATION = gql`
         name
         email
         role
+        avatarUrl
       }
     }
   }
@@ -23,6 +24,7 @@ export const LOGIN_MUTATION = gql`
         name
         email
         role
+        avatarUrl
       }
     }
   }

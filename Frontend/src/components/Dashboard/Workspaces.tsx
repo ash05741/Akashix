@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+// Import the uploader component we just built (adjust path if needed)
+import { ImageUploader } from '../ImageUploader';
 
 // --- GraphQL Operations ---
 const GET_MY_WORKSPACES = gql`
@@ -17,6 +19,7 @@ const GET_MY_WORKSPACES = gql`
       id
       name
       description
+      imageUrl # <-- NEW: Fetch the image
       isPublic
       createdAt
     }
@@ -24,11 +27,12 @@ const GET_MY_WORKSPACES = gql`
 `;
 
 const CREATE_WORKSPACE = gql`
-  mutation CreateWorkspace($name: String!, $description: String) {
-    createWorkspace(name: $name, description: $description) {
+  mutation CreateWorkspace($name: String!, $description: String, $imageUrl: String) { # <-- NEW: Accept imageUrl
+    createWorkspace(name: $name, description: $description, imageUrl: $imageUrl) {
       id
       name
       description
+      imageUrl # <-- NEW: Return the image
       isPublic
     }
   }
@@ -38,6 +42,7 @@ interface Workspace {
     id: string;
     name: string;
     description: string | null;
+    imageUrl: string | null; // <-- NEW
     isPublic: boolean;
     createdAt: string;
 }
@@ -65,7 +70,8 @@ export default function Workspaces() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [formData, setFormData] = useState({ name: '', description: '' });
+    // --- NEW: Added imageUrl to form state ---
+    const [formData, setFormData] = useState({ name: '', description: '', imageUrl: '' });
 
     const { data, loading, error } = useQuery<WorkspacesData>(GET_MY_WORKSPACES);
 
@@ -73,7 +79,8 @@ export default function Workspaces() {
         refetchQueries: [{ query: GET_MY_WORKSPACES }],
         onCompleted: (result) => {
             setIsModalOpen(false);
-            setFormData({ name: '', description: '' });
+            // --- NEW: Reset imageUrl ---
+            setFormData({ name: '', description: '', imageUrl: '' });
             if (result?.createWorkspace) {
                 handleEnterWorkspace(result.createWorkspace.id, result.createWorkspace.name);
             }
@@ -142,7 +149,11 @@ export default function Workspaces() {
                     <div className="flex items-center gap-5">
                         <div className="w-20 h-20 bg-white border border-zinc-200 p-1.5 shrink-0 relative shadow-md rounded-2xl">
                             <div className="w-full h-full bg-[#081B21] rounded-xl flex items-center justify-center overflow-hidden">
-                                <UserIcon className="w-8 h-8 text-[#d9a05b]" strokeWidth={2} />
+                                {user?.avatarUrl ? (
+                                    <img src={user.avatarUrl} alt={creatorName} className="w-full h-full object-cover" />
+                                ) : (
+                                    <UserIcon className="w-8 h-8 text-[#d9a05b]" strokeWidth={2} />
+                                )}
                             </div>
                             <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white"></div>
                         </div>
@@ -223,9 +234,13 @@ export default function Workspaces() {
                                     onClick={() => handleEnterWorkspace(workspace.id, workspace.name)}
                                     className="flex flex-col sm:flex-row bg-white border border-zinc-200 hover:border-amber-400/60 rounded-2xl p-3 gap-4 group transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
                                 >
-                                    {/* Scaled down thumbnail */}
+                                    {/* --- NEW: Dynamic image thumbnail --- */}
                                     <div className="w-full sm:w-32 h-32 rounded-xl shrink-0 shadow-inner flex items-center justify-center bg-[#081B21] relative overflow-hidden">
-                                        <Castle className="w-10 h-10 text-[#d9a05b] opacity-80" strokeWidth={1.5} />
+                                        {workspace.imageUrl ? (
+                                            <img src={workspace.imageUrl} alt={workspace.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Castle className="w-10 h-10 text-[#d9a05b] opacity-80" strokeWidth={1.5} />
+                                        )}
                                     </div>
 
                                     <div className="flex-1 flex flex-col justify-between py-1 pr-2">
@@ -307,6 +322,16 @@ export default function Workspaces() {
                             </div>
 
                             <form onSubmit={handleCreate} className="p-6 space-y-5">
+                                {/* --- NEW: Image Uploader mounted in form --- */}
+                                <div className="space-y-1.5 border-b border-zinc-100 pb-5 mb-5">
+                                    <ImageUploader
+                                        label="Realm Cover Image"
+                                        folder="workspaces"
+                                        currentImage={formData.imageUrl}
+                                        onUploadSuccess={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
+                                    />
+                                </div>
+
                                 <div className="space-y-1.5">
                                     {/* FIELD LABEL: font-mono */}
                                     <label className="font-mono block text-[10px] font-bold text-zinc-500 tracking-widest uppercase">
