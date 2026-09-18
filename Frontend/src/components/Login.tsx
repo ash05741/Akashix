@@ -23,6 +23,7 @@ interface LoginResponse {
             name: string;
             email: string;
             role: string;
+            avatarUrl?: string;
         };
     };
 }
